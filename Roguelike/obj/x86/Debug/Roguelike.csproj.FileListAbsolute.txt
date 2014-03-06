@@ -1,0 +1,13 @@
+C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\obj\x86\Debug\Roguelike.csprojResolveAssemblyReference.cache
+C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Debug\Content\Sprites\dwarf.png
+C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Debug\Content\Sprites\wall.png
+C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Debug\Content\Fonts\tahoma.xnb
+C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Debug\SDL.dll
+C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Debug\Roguelike.exe
+C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Debug\Roguelike.pdb
+C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Debug\Lidgren.Network.dll
+C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Debug\MonoGame.Framework.dll
+C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Debug\OpenTK.dll
+C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Debug\Tao.Sdl.dll
+C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\obj\x86\Debug\Roguelike.exe
+C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\obj\x86\Debug\Roguelike.pdb
