@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using System;
 
 namespace Roguelike
 {
@@ -22,12 +21,21 @@ namespace Roguelike
 
         public void Update()
         {
-            map.GenerateRoom(cornerNW, cornerSE);
+        }
+
+        public bool Intersects(Room r1)
+        {
+            Room r2 = this;
+
+            return !(r2.cornerNW.X > r1.cornerSE.X - 1 ||
+            r2.cornerSE.X - 1 < r1.cornerNW.X ||
+            r2.cornerNW.Y > r1.cornerSE.Y - 1 ||
+            r2.cornerSE.Y - 1 < r1.cornerNW.Y);
         }
 
         public bool ContainsPoint(Point point)
         {
-            if (point.X >= cornerNW.X && point.X<cornerSE.X && point.Y>=cornerNW.Y && point.Y < cornerSE.Y)
+            if (point.X >= cornerNW.X && point.X < cornerSE.X && point.Y >= cornerNW.Y && point.Y < cornerSE.Y)
             {
                 return true;
             }

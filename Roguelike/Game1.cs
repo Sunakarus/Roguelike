@@ -1,13 +1,10 @@
 ﻿#region Using Statements
-using System;
-using System.Collections.Generic;
+
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Microsoft.Xna.Framework.Storage;
-using Microsoft.Xna.Framework.GamerServices;
-#endregion
+
+#endregion Using Statements
 
 namespace Roguelike
 {
@@ -16,10 +13,10 @@ namespace Roguelike
     /// </summary>
     public class Game1 : Game
     {
-        GraphicsDeviceManager graphics;
-        SpriteBatch spriteBatch;
-        ContentManager contentManager;
-        Gameplay gamePlay;
+        private GraphicsDeviceManager graphics;
+        private SpriteBatch spriteBatch;
+        private ContentManager contentManager;
+        private Gameplay gamePlay;
 
         public Game1()
             : base()
@@ -74,7 +71,6 @@ namespace Roguelike
                 Exit();
             gamePlay.Update();
 
-
             base.Update(gameTime);
         }
 
@@ -89,7 +85,6 @@ namespace Roguelike
             spriteBatch.Begin();
             gamePlay.Draw(spriteBatch);
             spriteBatch.End();
-
 
             base.Draw(gameTime);
         }
