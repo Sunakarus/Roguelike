@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using System;
 using System.Collections.Generic;
 
 namespace Roguelike
@@ -11,30 +10,27 @@ namespace Roguelike
         public int[,] mapArray;
         private Controller controller;
 
-        private enum MapEntity : int { Nothing = 0, Wall = 1, Player = 2 }
+        public enum Element : int { Nothing = 0, Wall = 1, Player = 2, Door = 3, Item = 4 }
 
         public int floorSize;
         public List<Room> roomList = new List<Room>();
 
         private string mapString = "";
+        float scale = 0.41f;
+        MouseState mouse, prevMouse;
 
         public Map(Controller controller, int floorSize)
         {
             this.controller = controller;
             this.floorSize = floorSize;
 
-            roomList.Add(new Room(controller, this, new Point(1, 1), new Point(2, 3)));
-            roomList.Add(new Room(controller, this, new Point(0, 0), new Point(4, 4)));
-
-            GenerateFloor();
-            /*for (int i = 0; i < roomList.Count; i++)
-            {
-                GenerateRoom(roomList[i].cornerNW, roomList[i].cornerSE);
-            }*/
+            GenerateEmptyFloor();
             mapString = ArrayToString(mapArray);
+
+            mouse = Mouse.GetState();
         }
 
-        public string ArrayToString(int[,] mArray)
+        private string ArrayToString(int[,] mArray)
         {
             //starts at [0,0], then does each column
             string returnString = "";
@@ -48,7 +44,7 @@ namespace Roguelike
             return returnString;
         }
 
-        public int[,] StringToArray(string mString)
+        private int[,] StringToArray(string mString)
         {
             //starts at [0,0], then does each column
             int size = floorSize;
@@ -64,7 +60,7 @@ namespace Roguelike
             return returnArray;
         }
 
-        public void GenerateFloor()
+        public void GenerateEmptyFloor()
         {
             mapArray = new int[floorSize, floorSize];
 
@@ -72,12 +68,12 @@ namespace Roguelike
             {
                 for (int iy = 0; iy < mapArray.GetLength(1); iy++)
                 {
-                    mapArray[ix, iy] = 1;
+                    mapArray[ix, iy] = (int)Element.Wall;
                 }
             }
         }
 
-        public void GenerateRandomRoom(int minX, int minY)
+        private void GenerateRandomRoom(int minX, int minY)
         {
             int a, b, c, d;
             do
@@ -91,9 +87,10 @@ namespace Roguelike
             GenerateRoom(new Point(a, b), new Point(c, d));
         }
 
-        public void GenerateRandomRoom(int minX, int minY, int maxX, int maxY)
+        private void GenerateRandomRoom(int minX, int minY, int maxX, int maxY)
         {
             int a, b, c, d;
+
             do
             {
                 a = controller.random.Next(1, floorSize - 1);
@@ -102,19 +99,55 @@ namespace Roguelike
                 d = controller.random.Next(b, floorSize);
             }
             while (c - a < minX || d - b < minY || c - a > maxX || d - b > maxY);
+
             GenerateRoom(new Point(a, b), new Point(c, d));
         }
 
-        public bool IsWall(Point position)
+        private void GenerateRandomIsolatedRoom(int minX, int minY, int maxX, int maxY)
         {
-            if (mapArray[position.X, position.Y] == 1)
+            int a, b, c, d;
+            bool isIsolated;
+
+            do
+            {
+                isIsolated = true;
+                Room tempRoom;
+                a = controller.random.Next(1, floorSize - 1);
+                b = controller.random.Next(1, floorSize - 1);
+                c = controller.random.Next(a, floorSize);
+                d = controller.random.Next(b, floorSize);
+
+                if (c - a >= minX && d - b >= minY && c - a <= maxX && d - b <= maxY)
+                {
+                    tempRoom = new Room(controller, this, new Point(a, b), new Point(c, d));
+                    foreach (Room r in roomList)
+                    {
+                        if (r.Intersects(tempRoom))
+                        {
+                            isIsolated = false;
+                        }
+                    }
+                }
+                else
+                {
+                    isIsolated = false;
+                }
+            }
+            while (!isIsolated);
+
+            GenerateRoom(new Point(a, b), new Point(c, d));
+        }
+
+        public bool IsElement(Point position, Element elem)
+        {
+            if (mapArray[position.X, position.Y] == (int)elem)
             {
                 return true;
             }
             return false;
         }
 
-        public void GenerateRoom(Point corner1, Point corner2)
+        private void GenerateRoom(Point corner1, Point corner2)
         {
             if (!OutOfBounds(corner1) && !OutOfBounds(corner2))
             {
@@ -135,7 +168,7 @@ namespace Roguelike
                     {
                         for (int iy = corner1.Y; iy < corner2.Y; iy++)
                         {
-                            mapArray[ix, iy] = 0;
+                            mapArray[ix, iy] = (int)Element.Nothing;
                         }
                     }
 
@@ -162,14 +195,14 @@ namespace Roguelike
             return false;
         }
 
-        public bool OutOfBounds(Room room)
+        /*public bool OutOfBounds(Room room)
         {
             if (room.cornerSE.X > floorSize || room.cornerNW.Y > floorSize || room.cornerSE.X < 0 || room.cornerNW.Y < 0)
             {
                 return true;
             }
             return false;
-        }
+        }*/
 
         /*public bool IsIsolated(Room room)
         {
@@ -216,162 +249,253 @@ namespace Roguelike
             return true;
         }
 
+        public void CheckForDoors(Room room)
+        {
+            Room bigRoom = new Room(controller, this, new Point(room.cornerNW.X - 1, room.cornerNW.Y - 1), room.cornerSE);
+            Point tempPoint = new Point(0, 0);
+            Point corner1 = new Point(bigRoom.cornerSE.X, bigRoom.cornerNW.Y);
+            Point corner2 = new Point(bigRoom.cornerNW.X, bigRoom.cornerSE.Y);
+
+            for (int ix = bigRoom.cornerNW.X; ix < bigRoom.cornerSE.X + 1; ix++)
+            {
+                for (int iy = bigRoom.cornerNW.Y; iy < bigRoom.cornerSE.Y + 1; iy++)
+                {
+                    tempPoint.X = ix;
+                    tempPoint.Y = iy;
+
+                    if (OutOfBounds(tempPoint))
+                    {
+                        continue;
+                    }
+
+                    if (mapArray[ix, iy] == (int)Element.Nothing && !room.ContainsPoint(tempPoint) && tempPoint != bigRoom.cornerNW && tempPoint != bigRoom.cornerSE && tempPoint != corner1 && tempPoint != corner2)
+                    {
+                        foreach (Room r in roomList)
+                        {
+                            if (r.ContainsPoint(tempPoint))
+                            {
+                                Point pointLeft, pointRight, pointUp, pointDown;
+                                pointLeft = new Point(tempPoint.X - 1, tempPoint.Y);
+                                pointRight = new Point(tempPoint.X + 1, tempPoint.Y);
+                                pointUp = new Point(tempPoint.X, tempPoint.Y - 1);
+                                pointDown = new Point(tempPoint.X, tempPoint.Y + 1);
+                                //top || bottom
+                                if ((bigRoom.cornerNW.Y == room.cornerNW.Y - 1 || bigRoom.cornerSE.Y == room.cornerSE.Y) && (r.width == 1))
+                                {
+                                    if (IsElement(pointLeft, Element.Wall) && IsElement(pointRight, Element.Wall) && mapArray[pointUp.X, pointUp.Y] != (int)Element.Door && mapArray[pointDown.X, pointDown.Y] != (int)Element.Door)
+                                    {
+                                        //SPAWN DOOR
+                                        mapArray[ix, iy] = (int)Element.Door;
+                                    }
+                                }
+                                //left || right
+                                else if ((bigRoom.cornerNW.X == room.cornerNW.X - 1 || bigRoom.cornerSE.X == room.cornerSE.X) && r.height == 1)
+                                {
+                                    if (IsElement(pointUp, Element.Wall) && IsElement(pointDown, Element.Wall) && mapArray[pointLeft.X, pointLeft.Y] != (int)Element.Door && mapArray[pointRight.X, pointRight.Y] != (int)Element.Door)
+                                    {
+                                        //SPAWN DOOR
+                                        mapArray[ix, iy] = (int)Element.Door;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         public Point GenerateFreePos()
         {
             int x, y;
+            if (roomList.Count == 0)
+            {
+                return Point.Zero;
+            }
             do
             {
                 x = controller.random.Next(mapArray.GetLength(0));
                 y = controller.random.Next(mapArray.GetLength(1));
             }
-            while (mapArray[x, y] != 0);
+            while (mapArray[x, y] != (int)Element.Nothing);
             return new Point(x, y);
         }
 
         public void CreateRandomLevel(int numberOfRooms, int roomSizeX, int roomSizeY, int maxRoomSizeX, int maxRoomSizeY)
         {
-            GenerateFloor();
-            bool repeat = false;
-            int counter = 0;
-
-            do
+            GenerateEmptyFloor();
+            roomList.Clear();
+            while (roomList.Count == 0 || !CheckIfAllConnected(roomList))
             {
-                GenerateFloor();
+                GenerateEmptyFloor();
                 roomList.Clear();
-                repeat = false;
-
+                //CREATE BIG ROOMS
                 for (int i = 0; i < numberOfRooms; i++)
                 {
-                    GenerateRandomRoom(roomSizeX, roomSizeY, maxRoomSizeX, maxRoomSizeY);
+                    GenerateRandomIsolatedRoom(roomSizeX, roomSizeY, maxRoomSizeX, maxRoomSizeY);
                 }
-
+                //CORRIDORS
                 for (int i = 0; i < roomList.Count; i++)
                 {
-                    if (!IsIsolated(roomList[i]))
-                    {
-                        repeat = true;
-                        counter++;
-                        break;
-                    }
+                    Room tempRoom;
+                    int x1, x2, y1, y2;
+
                     for (int i2 = 0; i2 < roomList.Count; i2++)
                     {
-                        if (roomList[i].cornerNW == roomList[i2].cornerNW && roomList[i].cornerSE == roomList[i2].cornerSE && roomList[i] != roomList[i2])
+                        if (roomList[i].cornerNW.X <= roomList[i2].cornerNW.X)
                         {
-                            repeat = true;
-                            counter++;
-                            break;
+                            x1 = roomList[i].cornerNW.X;
+                            x2 = roomList[i2].cornerSE.X;
+                        }
+                        else
+                        {
+                            x1 = roomList[i2].cornerNW.X;
+                            x2 = roomList[i].cornerSE.X;
+                        }
+
+                        tempRoom = new Room(controller, this, new Point(x1, roomList[i].cornerNW.Y), new Point(x2, roomList[i].cornerNW.Y + 1));
+                        if (roomList[i2] != roomList[i])
+                        {
+                            if (tempRoom.Intersects(roomList[i2]))
+                            {
+                                GenerateRoom(tempRoom.cornerNW, tempRoom.cornerSE);
+                                break;
+                            }
                         }
                     }
-                }
-            }
-            while (repeat);
 
-            //foreach (Room r in roomList)
-            for (int i = 0; i < roomList.Count; i++)
-            {
-                Room tempRoom;
-                int x1, x2, y1, y2;
-                //foreach (Room rm in roomList)
-                for (int i2 = 0; i2 < roomList.Count; i2++)
-                {
-                    if (roomList[i].cornerNW.X <= roomList[i2].cornerNW.X)
+                    for (int i2 = 0; i2 < roomList.Count; i2++)
                     {
-                        x1 = roomList[i].cornerNW.X;
-                        x2 = roomList[i2].cornerSE.X;
-                    }
-                    else
-                    {
-                        x1 = roomList[i2].cornerNW.X;
-                        x2 = roomList[i].cornerSE.X;
-                    }
+                        if (roomList[i].cornerNW.Y <= roomList[i2].cornerNW.Y)
+                        {
+                            y1 = roomList[i].cornerNW.Y;
+                            y2 = roomList[i2].cornerSE.Y;
+                        }
+                        else
+                        {
+                            y1 = roomList[i2].cornerNW.Y;
+                            y2 = roomList[i].cornerSE.Y;
+                        }
 
-                    tempRoom = new Room(controller, this, new Point(x1, roomList[i].cornerNW.Y), new Point(x2, roomList[i].cornerNW.Y + 1));
-                    if (roomList[i2] != roomList[i])
-                    {
-                        if (tempRoom.Intersects(roomList[i2]))
+                        tempRoom = new Room(controller, this, new Point(roomList[i].cornerNW.X, y1), new Point(roomList[i].cornerNW.X + 1, y2));
+                        if (tempRoom.Intersects(roomList[i2]) && roomList[i2] != roomList[i] /*&& IsIsolated(rm)*/)
                         {
                             GenerateRoom(tempRoom.cornerNW, tempRoom.cornerSE);
                             break;
                         }
                     }
                 }
-
-                for (int i2 = 0; i2 < roomList.Count; i2++)
+                //ELIMINATE ISOLATED ROOMS
+                for (int i = roomList.Count - 1; i > -1; i--)
                 {
-                    if (roomList[i].cornerNW.Y <= roomList[i2].cornerNW.Y)
+                    if (IsIsolated(roomList[i]) && roomList.Count > 0)
                     {
-                        y1 = roomList[i].cornerNW.Y;
-                        y2 = roomList[i2].cornerSE.Y;
-                    }
-                    else
-                    {
-                        y1 = roomList[i2].cornerNW.Y;
-                        y2 = roomList[i].cornerSE.Y;
-                    }
-
-                    tempRoom = new Room(controller, this, new Point(roomList[i].cornerNW.X, y1), new Point(roomList[i].cornerNW.X + 1, y2));
-                    if (tempRoom.Intersects(roomList[i2]) && roomList[i2] != roomList[i] /*&& IsIsolated(rm)*/)
-                    {
-                        GenerateRoom(tempRoom.cornerNW, tempRoom.cornerSE);
-                        break;
+                        for (int ix = roomList[i].cornerNW.X; ix < roomList[i].cornerSE.X; ix++)
+                        {
+                            for (int iy = roomList[i].cornerNW.Y; iy < roomList[i].cornerSE.Y; iy++)
+                            {
+                                mapArray[ix, iy] = (int)Element.Wall;
+                            }
+                        }
+                        roomList.RemoveAt(i);
                     }
                 }
             }
-            for (int i = roomList.Count - 1; i > -1; i--)
+
+            //GENERATING ITEMS
+            for (int i = 0; i < 10; i++)
             {
-                if (IsIsolated(roomList[i]))
-                {
-                    for (int ix = roomList[i].cornerNW.X; ix < roomList[i].cornerSE.X; ix++)
-                    {
-                        for (int iy = roomList[i].cornerNW.Y; iy < roomList[i].cornerSE.Y; iy++)
-                        {
-                            mapArray[ix, iy] = 1;
-                        }
-                    }
-                    roomList.RemoveAt(i);
-                }
+                Point temp = GenerateFreePos();
+                mapArray[temp.X, temp.Y] = (int)Element.Item;
+            }
+            //////////////////
+
+            //MAKE DOORS
+            foreach (Room r in roomList)
+            {
+                CheckForDoors(r);
             }
 
             mapString = ArrayToString(mapArray);
             controller.player.position = GenerateFreePos();
-            Console.WriteLine("# of tries: " + counter + " count: " + roomList.Count);
+        }
+
+        public bool CheckIfAllConnected(List<Room> list)
+        {
+            List<Room> tempList = new List<Room>();
+            tempList.Add(list[0]);
+            bool repeat;
+            do
+            {
+                repeat = false;
+                foreach (Room r in list)
+                {
+                    for (int i = 0; i < tempList.Count; i++)
+                    {
+                        if (tempList[i].Intersects(r) && !tempList.Contains(r))
+                        {
+                            tempList.Add(r);
+                            repeat = true;
+                        }
+                    }
+                }
+            }
+            while (repeat);
+
+            return (tempList.Count == list.Count);
         }
 
         public void Update()
         {
+            prevMouse = mouse;
+            mouse = Mouse.GetState();
             mapArray = StringToArray(mapString);
 
             if (Keyboard.GetState().IsKeyDown(Keys.Space))
             {
-                CreateRandomLevel(10, 2, 2, 5, 5);
+                CreateRandomLevel(13, 3, 3, 4, 4);
                 mapArray = StringToArray(mapString);
             }
 
-            if (Keyboard.GetState().IsKeyDown(Keys.G))
+            if (prevMouse.ScrollWheelValue != mouse.ScrollWheelValue)
             {
-                Console.WriteLine(ArrayToString(mapArray));
+                if (mouse.ScrollWheelValue - prevMouse.ScrollWheelValue > 0)
+                {
+                    scale += 0.05f;
+                }
+                else if (mouse.ScrollWheelValue - prevMouse.ScrollWheelValue < 0)
+                {
+                    scale -= 0.05f;
+                } 
             }
-
-            mapArray[controller.player.position.X, controller.player.position.Y] = 2;
+            mapArray[controller.player.position.X, controller.player.position.Y] = (int)Element.Player;
         }
 
         public void Draw(SpriteBatch spriteBatch, ContentManager contentManager)
         {
-            float scale = 0.6f;
             for (int ix = 0; ix < mapArray.GetLength(0); ix++)
             {
                 for (int iy = 0; iy < mapArray.GetLength(1); iy++)
                 {
                     switch (mapArray[ix, iy])
                     {
-                        case 1:
+                        case (int)Element.Wall: //wall
                             {
                                 spriteBatch.Draw(contentManager.tWall, new Vector2(ix * contentManager.tWall.Width * scale, iy * contentManager.tWall.Height * scale), null, Color.White, 0, Vector2.Zero, scale, SpriteEffects.None, 1);
                                 break;
                             }
-                        case 2:
+                        case (int)Element.Player: //player
                             {
                                 spriteBatch.Draw(contentManager.tPlayer, new Vector2(ix * contentManager.tWall.Width * scale, iy * contentManager.tWall.Height * scale), null, Color.White, 0, Vector2.Zero, scale, SpriteEffects.None, 1);
+                                break;
+                            }
+                        case (int)Element.Door: //door
+                            {
+                                spriteBatch.Draw(contentManager.tDoor, new Vector2(ix * contentManager.tWall.Width * scale, iy * contentManager.tWall.Height * scale), null, Color.White, 0, Vector2.Zero, scale, SpriteEffects.None, 1);
+                                break;
+                            }
+                        case (int)Element.Item: //item
+                            {
+                                spriteBatch.Draw(contentManager.tPotion, new Vector2(ix * contentManager.tWall.Width * scale, iy * contentManager.tWall.Height * scale), null, Color.White, 0, Vector2.Zero, scale, SpriteEffects.None, 1);
                                 break;
                             }
                     }

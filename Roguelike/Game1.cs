@@ -47,6 +47,8 @@ namespace Roguelike
             contentManager = new ContentManager();
             contentManager.tPlayer = Content.Load<Texture2D>("Sprites/dwarf");
             contentManager.tWall = Content.Load<Texture2D>("Sprites/wall");
+            contentManager.tPotion = Content.Load<Texture2D>("Sprites/potion");
+            contentManager.tDoor = Content.Load<Texture2D>("Sprites/door");
             contentManager.font = Content.Load<SpriteFont>("Fonts/tahoma");
 
             gamePlay = new Gameplay(contentManager);
@@ -80,7 +82,7 @@ namespace Roguelike
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Silver);
 
             spriteBatch.Begin();
             gamePlay.Draw(spriteBatch);

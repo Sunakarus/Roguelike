@@ -44,7 +44,7 @@ namespace Roguelike
 
         public override string ToString()
         {
-            return map.IsIsolated(this).ToString();
+            return width.ToString() + ";" + height.ToString();
         }
     }
 }

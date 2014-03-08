@@ -11,8 +11,8 @@ namespace Roguelike
 
         public Controller()
         {
-            map = new Map(this, 22);
-            map.GenerateFloor();
+            map = new Map(this, 30);
+            map.GenerateEmptyFloor();
             player = new Player(this);
         }
 

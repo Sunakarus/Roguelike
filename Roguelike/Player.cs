@@ -67,7 +67,7 @@ namespace Roguelike
                         break;
                     }
             }
-            if (!controller.map.OutOfBounds(futurePos) && !controller.map.IsWall(futurePos))
+            if (!controller.map.OutOfBounds(futurePos) && !controller.map.IsElement(futurePos, Map.Element.Wall))
             {
                 position = futurePos;
             }

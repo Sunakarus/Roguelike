@@ -11,3 +11,5 @@ C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\D
 C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Debug\Tao.Sdl.dll
 C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\obj\x86\Debug\Roguelike.exe
 C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\obj\x86\Debug\Roguelike.pdb
+C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Debug\Content\Sprites\potion.png
+C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Debug\Content\Sprites\door.png
