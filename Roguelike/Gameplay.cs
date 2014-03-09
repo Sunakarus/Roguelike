@@ -6,12 +6,10 @@ namespace Roguelike
     internal class Gameplay
     {
         public Controller controller;
-        public ContentManager contentManager;
         public GraphicsDeviceManager graphics;
 
-        public Gameplay(ContentManager contentManager, GraphicsDeviceManager graphics)
+        public Gameplay(GraphicsDeviceManager graphics)
         {
-            this.contentManager = contentManager;
             this.graphics = graphics;
             controller = new Controller(graphics);
         }
@@ -23,7 +21,7 @@ namespace Roguelike
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            controller.Draw(spriteBatch, contentManager);
+            controller.Draw(spriteBatch);
         }
     }
 }

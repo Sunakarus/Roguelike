@@ -8,6 +8,7 @@ namespace Roguelike
         private Controller controller;
         private KeyboardState state, prevState;
         public Point position;
+        public bool stepped = false;
 
         public enum Movement { Left, Up, Right, Down }
 
@@ -68,11 +69,23 @@ namespace Roguelike
                     }
             }
 
-            if (!controller.map.OutOfBounds(futurePos) && !controller.map.IsElement(futurePos, Map.Element.Wall))
+            if (!controller.map.OutOfBounds(futurePos) && !controller.map.IsElement(futurePos, Map.Element.Wall) && 
+            !controller.map.IsElement(futurePos, Map.Element.Enemy))
             {
                 position = futurePos;
             }
+            else if (controller.map.IsElement(futurePos, Map.Element.Enemy))
+            {
+                for (int i = controller.map.enemyList.Count -1; i>-1; i--)
+                {
+                    if (controller.map.enemyList[i].position == futurePos)
+                    {
+                        controller.map.enemyList.RemoveAt(i);
+                    }
+                }
+            }
 
+            stepped = true;
             //TO DO
             //Picking up items, attacking enemies, punchin through walls etc
         }

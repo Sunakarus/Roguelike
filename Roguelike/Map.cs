@@ -11,12 +11,14 @@ namespace Roguelike
         public int[,] mapArray;
         private Controller controller;
 
-        public enum Element : int { Nothing = 0, Wall = 1, Player = 2, Door = 3, Item = 4 }
+        public enum Element : int { Nothing = 0, Wall = 1, Player = 2, Door = 3, Item = 4, DoorOpen = 5, Enemy = 6 }
 
         public int floorSize;
-        public List<Room> roomList = new List<Room>();
 
-        private string mapString = "";
+        public List<Room> roomList = new List<Room>();
+        public List<Enemy> enemyList = new List<Enemy>();
+
+        public string mapString = "";
         public float scale = 0.8f;
         private MouseState mouse, prevMouse;
 
@@ -31,7 +33,7 @@ namespace Roguelike
             mouse = Mouse.GetState();
         }
 
-        private string ArrayToString(int[,] mArray)
+        public string ArrayToString(int[,] mArray)
         {
             //starts at [0,0], then does each column
             string returnString = "";
@@ -45,7 +47,7 @@ namespace Roguelike
             return returnString;
         }
 
-        private int[,] StringToArray(string mString)
+        public int[,] StringToArray(string mString)
         {
             //starts at [0,0], then does each column
             int size = floorSize;
@@ -329,14 +331,8 @@ namespace Roguelike
             }
             if (!breakAll)
             {
-                Console.WriteLine("No free space detected.");
                 return Point.Zero;
             }
-
-            /*if (roomList.Count == 0)
-            {
-                return Point.Zero;
-            }*/
             do
             {
                 x = controller.random.Next(mapArray.GetLength(0));
@@ -346,15 +342,26 @@ namespace Roguelike
             return new Point(x, y);
         }
 
+        public bool IsWalkable(Point position)
+        {
+            if (mapArray[position.X, position.Y] == (int)Element.DoorOpen || mapArray[position.X, position.Y] == (int)Element.Nothing || mapArray[position.X, position.Y] == (int)Element.Item)
+            {
+                return true;
+            }
+            return false;
+        }
+
         public void CreateRandomLevel(int numberOfRooms, int roomSizeX, int roomSizeY, int maxRoomSizeX, int maxRoomSizeY)
         {
             GenerateEmptyFloor();
             roomList.Clear();
+            enemyList.Clear();
 
             while (roomList.Count == 0 || !CheckIfAllConnected(roomList))
             {
                 GenerateEmptyFloor();
                 roomList.Clear();
+                enemyList.Clear();
                 //CREATE BIG ROOMS
                 for (int i = 0; i < numberOfRooms; i++)
                 {
@@ -427,7 +434,6 @@ namespace Roguelike
                     }
                 }
             }
-            controller.player.position = GenerateFreePos();
 
             //MAKE DOORS
             foreach (Room r in roomList)
@@ -435,16 +441,92 @@ namespace Roguelike
                 CheckForDoors(r);
             }
 
+            controller.player.position = GenerateFreePos();
+
             //GENERATING ITEMS
-            for (int i = 0; i < 10; i++)
+            /*
+            bool hasDoor = false, canSpawn = true;
+            List<Point> pointList = new List<Point>();
+
+            Point tempPoint = new Point(0,0);
+            for (int ix = 0; ix < mapArray.GetLength(0); ix++)
             {
-                Point temp = GenerateFreePos();
+                for (int iy = 0; iy < mapArray.GetLength(1); iy++)
+                {
+                    if (mapArray[ix, iy] == (int)Element.Nothing)
+                    {
+                        pointList.Clear();
+                        canSpawn = true;
+                        hasDoor = false;
+                        Console.WriteLine(ix + " " + iy);
+
+                        for (int a = -1; a <= 1; a++)
+                        {
+                            for (int b = -1; b <= 1; b++)
+                            {
+                                if (a == 0 && b == 0)
+                                {
+                                    continue;
+                                }
+                                tempPoint.X = ix + a;
+                                tempPoint.Y = iy + b;
+                                if (!OutOfBounds(tempPoint))
+                                {
+                                    pointList.Add(tempPoint);
+                                }
+                            }
+                        }
+
+                        foreach (Point p in pointList)
+                        {
+                            if (mapArray[p.X, p.Y] != (int)Element.Door || mapArray[p.X, p.Y] != (int)Element.Wall)
+                            {
+                                canSpawn = false;
+                                break;
+                            }
+
+                            if (mapArray[p.X, p.Y] == (int)Element.Door)
+                            {
+                                if (!hasDoor)
+                                {
+                                    hasDoor = true;
+                                    continue;
+                                }
+                                else
+                                {
+                                    canSpawn = false;
+                                    break;
+                                }
+                            }
+                        }
+                        //check for surrounding tiles, spawn item
+                        if (canSpawn)
+                        {
+                            mapArray[ix, iy] = (int)Element.Item;
+                        }
+                    }
+                }
+            }*/
+            Point temp;
+            for (int i = 0; i < numberOfRooms; i++)
+            {
+                temp = GenerateFreePos();
                 if (temp != Point.Zero)
                 {
                     mapArray[temp.X, temp.Y] = (int)Element.Item;
                 }
             }
             //////////////////
+            //ENEMIES
+            for (int i = 0; i < numberOfRooms; i++)
+            {
+                temp = GenerateFreePos();
+                if (temp != Point.Zero)
+                {
+                    //mapArray[temp.X, temp.Y] = (int)Element.Enemy;
+                    enemyList.Add(new Enemy(controller, ContentManager.tSkeleton, temp));
+                }
+            }
 
             mapString = ArrayToString(mapArray);
             controller.camera.ResetPosition();
@@ -503,46 +585,89 @@ namespace Roguelike
                 }
             }
 
+            if (IsElement(controller.player.position, Map.Element.Door))
+            {
+                mapArray[controller.player.position.X, controller.player.position.Y] = (int)Map.Element.DoorOpen;
+                mapString = ArrayToString(mapArray);
+            }
+
+            if (IsElement(controller.player.position, Map.Element.Item))
+            {
+                mapArray[controller.player.position.X, controller.player.position.Y] = (int)Map.Element.Nothing;
+                mapString = ArrayToString(mapArray);
+                //add item to player inventory etc
+            }
+
+            if (controller.player.stepped && Keyboard.GetState().IsKeyUp(Keys.Q))
+            {
+                foreach (Enemy e in enemyList)
+                {
+                    e.Move();
+                }
+                controller.player.stepped = false;
+            }
+            //ADD NON STATIC ELEMENTS
+            foreach (Enemy e in enemyList)
+            {
+                mapArray[e.position.X, e.position.Y] = (int)Map.Element.Enemy;
+            }
+
             mapArray[controller.player.position.X, controller.player.position.Y] = (int)Element.Player;
         }
 
-        public void Draw(SpriteBatch spriteBatch, ContentManager contentManager)
+        public void Draw(SpriteBatch spriteBatch)
         {
-            int tileSize = contentManager.tWall.Width;
+            int tileSize = ContentManager.tWall.Width;
             for (int ix = 0; ix < mapArray.GetLength(0); ix++)
             {
                 for (int iy = 0; iy < mapArray.GetLength(1); iy++)
                 {
                     switch (mapArray[ix, iy])
                     {
-                        case (int)Element.Wall: //wall
+                        case (int)Element.Wall:
                             {
-                                spriteBatch.Draw(contentManager.tWall, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
+                                spriteBatch.Draw(ContentManager.tWall, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
                                 break;
                             }
-                        case (int)Element.Player: //player
+                        case (int)Element.Player:
                             {
-                                spriteBatch.Draw(contentManager.tPlayer, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
+                                spriteBatch.Draw(ContentManager.tPlayer, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
                                 break;
                             }
-                        case (int)Element.Door: //door
+                        case (int)Element.Door:
                             {
-                                spriteBatch.Draw(contentManager.tDoor, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
+                                spriteBatch.Draw(ContentManager.tDoor, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
                                 break;
                             }
-                        case (int)Element.Item: //item
+                        case (int)Element.Item:
                             {
-                                spriteBatch.Draw(contentManager.tPotion, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
+                                spriteBatch.Draw(ContentManager.tPotion, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
+                                break;
+                            }
+                        case (int)Element.DoorOpen:
+                            {
+                                spriteBatch.Draw(ContentManager.tDoorOpen, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
+                                break;
+                            }
+                        case (int)Element.Enemy:
+                            {
+                                foreach (Enemy e in enemyList)
+                                {
+                                    if (e.position == new Point(ix, iy))
+                                    {
+                                        spriteBatch.Draw(e.texture, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
+                                        break;
+                                    }
+                                }
                                 break;
                             }
                     }
-                    //spriteBatch.DrawString(contentManager.font, mapArray[ix, iy].ToString(), new Vector2((float)ix * 32, (float)iy * 32), Color.Orange);
                 }
             }
 
             foreach (Room r in roomList)
             {
-                spriteBatch.DrawString(contentManager.font, r.ToString(), new Vector2((float)r.cornerNW.X * tileSize, (float)r.cornerNW.Y * tileSize), Color.Green, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
+                spriteBatch.DrawString(ContentManager.font, r.ToString(), new Vector2((float)r.cornerNW.X * tileSize, (float)r.cornerNW.Y * tileSize), Color.Green, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
             }
         }
     }

@@ -15,7 +15,6 @@ namespace Roguelike
     {
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
-        private ContentManager contentManager;
         private Gameplay gamePlay;
 
         public Game1()
@@ -44,14 +43,16 @@ namespace Roguelike
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            contentManager = new ContentManager();
-            contentManager.tPlayer = Content.Load<Texture2D>("Sprites/dwarf");
-            contentManager.tWall = Content.Load<Texture2D>("Sprites/wall");
-            contentManager.tPotion = Content.Load<Texture2D>("Sprites/potion");
-            contentManager.tDoor = Content.Load<Texture2D>("Sprites/door");
-            contentManager.font = Content.Load<SpriteFont>("Fonts/tahoma");
+            //contentManager = new ContentManager();
+            ContentManager.tPlayer = Content.Load<Texture2D>("Sprites/dwarf");
+            ContentManager.tWall = Content.Load<Texture2D>("Sprites/wall");
+            ContentManager.tPotion = Content.Load<Texture2D>("Sprites/potion");
+            ContentManager.tDoor = Content.Load<Texture2D>("Sprites/door");
+            ContentManager.tDoorOpen = Content.Load<Texture2D>("Sprites/door_open");
+            ContentManager.tSkeleton = Content.Load<Texture2D>("Sprites/skeleton");
+            ContentManager.font = Content.Load<SpriteFont>("Fonts/tahoma");
 
-            gamePlay = new Gameplay(contentManager, graphics);
+            gamePlay = new Gameplay(graphics);
         }
 
         /// <summary>

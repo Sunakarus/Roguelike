@@ -4,7 +4,7 @@ namespace Roguelike
 {
     internal class ContentManager
     {
-        public Texture2D tPlayer, tWall, tPotion, tDoor;
-        public SpriteFont font;
+        public static Texture2D tPlayer, tWall, tPotion, tDoor, tDoorOpen, tSkeleton;
+        public static SpriteFont font;
     }
 }

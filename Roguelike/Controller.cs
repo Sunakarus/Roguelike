@@ -31,9 +31,9 @@ namespace Roguelike
             camera.Update();
         }
 
-        public void Draw(SpriteBatch spriteBatch, ContentManager contentManager)
+        public void Draw(SpriteBatch spriteBatch)
         {
-            map.Draw(spriteBatch, contentManager);
+            map.Draw(spriteBatch);
         }
     }
 }
