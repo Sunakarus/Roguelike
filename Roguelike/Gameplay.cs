@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Roguelike
 {
@@ -6,11 +7,13 @@ namespace Roguelike
     {
         public Controller controller;
         public ContentManager contentManager;
+        public GraphicsDeviceManager graphics;
 
-        public Gameplay(ContentManager contentManager)
+        public Gameplay(ContentManager contentManager, GraphicsDeviceManager graphics)
         {
             this.contentManager = contentManager;
-            controller = new Controller();
+            this.graphics = graphics;
+            controller = new Controller(graphics);
         }
 
         public void Update()

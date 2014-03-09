@@ -67,10 +67,14 @@ namespace Roguelike
                         break;
                     }
             }
+
             if (!controller.map.OutOfBounds(futurePos) && !controller.map.IsElement(futurePos, Map.Element.Wall))
             {
                 position = futurePos;
             }
+
+            //TO DO
+            //Picking up items, attacking enemies, punchin through walls etc
         }
     }
 }

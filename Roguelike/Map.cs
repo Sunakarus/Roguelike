@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 using System.Collections.Generic;
 
 namespace Roguelike
@@ -16,8 +17,8 @@ namespace Roguelike
         public List<Room> roomList = new List<Room>();
 
         private string mapString = "";
-        float scale = 0.41f;
-        MouseState mouse, prevMouse;
+        public float scale = 0.8f;
+        private MouseState mouse, prevMouse;
 
         public Map(Controller controller, int floorSize)
         {
@@ -107,9 +108,10 @@ namespace Roguelike
         {
             int a, b, c, d;
             bool isIsolated;
-
+            int timeOut = 10000;
             do
             {
+                timeOut--;
                 isIsolated = true;
                 Room tempRoom;
                 a = controller.random.Next(1, floorSize - 1);
@@ -133,8 +135,13 @@ namespace Roguelike
                     isIsolated = false;
                 }
             }
-            while (!isIsolated);
+            while (!isIsolated && timeOut > 0);
 
+            if (timeOut == 0)
+            {
+                Console.WriteLine("GenerateRandomIsolatedRoom() timed out.");
+                return;
+            }
             GenerateRoom(new Point(a, b), new Point(c, d));
         }
 
@@ -282,16 +289,15 @@ namespace Roguelike
                                 //top || bottom
                                 if ((bigRoom.cornerNW.Y == room.cornerNW.Y - 1 || bigRoom.cornerSE.Y == room.cornerSE.Y) && (r.width == 1))
                                 {
-                                    if (IsElement(pointLeft, Element.Wall) && IsElement(pointRight, Element.Wall) && mapArray[pointUp.X, pointUp.Y] != (int)Element.Door && mapArray[pointDown.X, pointDown.Y] != (int)Element.Door)
+                                    if (IsElement(pointLeft, Element.Wall) && IsElement(pointRight, Element.Wall) && mapArray[pointUp.X, pointUp.Y] != (int)Element.Door && mapArray[pointDown.X, pointDown.Y] != (int)Element.Door && mapArray[pointUp.X, pointUp.Y] != (int)Element.Wall && mapArray[pointDown.X, pointDown.Y] != (int)Element.Wall)
                                     {
-                                        //SPAWN DOOR
                                         mapArray[ix, iy] = (int)Element.Door;
                                     }
                                 }
                                 //left || right
                                 else if ((bigRoom.cornerNW.X == room.cornerNW.X - 1 || bigRoom.cornerSE.X == room.cornerSE.X) && r.height == 1)
                                 {
-                                    if (IsElement(pointUp, Element.Wall) && IsElement(pointDown, Element.Wall) && mapArray[pointLeft.X, pointLeft.Y] != (int)Element.Door && mapArray[pointRight.X, pointRight.Y] != (int)Element.Door)
+                                    if (IsElement(pointUp, Element.Wall) && IsElement(pointDown, Element.Wall) && mapArray[pointLeft.X, pointLeft.Y] != (int)Element.Door && mapArray[pointRight.X, pointRight.Y] != (int)Element.Door && mapArray[pointLeft.X, pointLeft.Y] != (int)Element.Wall && mapArray[pointRight.X, pointRight.Y] != (int)Element.Wall)
                                     {
                                         //SPAWN DOOR
                                         mapArray[ix, iy] = (int)Element.Door;
@@ -307,10 +313,30 @@ namespace Roguelike
         public Point GenerateFreePos()
         {
             int x, y;
-            if (roomList.Count == 0)
+            //check if there is a free space at all
+            bool breakAll = false;
+            for (int ix = 0; ix < mapArray.GetLength(0); ix++)
             {
+                if (breakAll) { break; }
+                for (int iy = 0; iy < mapArray.GetLength(1); iy++)
+                {
+                    if (breakAll) { break; }
+                    if (mapArray[ix, iy] == (int)Element.Nothing)
+                    {
+                        breakAll = true;
+                    }
+                }
+            }
+            if (!breakAll)
+            {
+                Console.WriteLine("No free space detected.");
                 return Point.Zero;
             }
+
+            /*if (roomList.Count == 0)
+            {
+                return Point.Zero;
+            }*/
             do
             {
                 x = controller.random.Next(mapArray.GetLength(0));
@@ -324,6 +350,7 @@ namespace Roguelike
         {
             GenerateEmptyFloor();
             roomList.Clear();
+
             while (roomList.Count == 0 || !CheckIfAllConnected(roomList))
             {
                 GenerateEmptyFloor();
@@ -400,14 +427,7 @@ namespace Roguelike
                     }
                 }
             }
-
-            //GENERATING ITEMS
-            for (int i = 0; i < 10; i++)
-            {
-                Point temp = GenerateFreePos();
-                mapArray[temp.X, temp.Y] = (int)Element.Item;
-            }
-            //////////////////
+            controller.player.position = GenerateFreePos();
 
             //MAKE DOORS
             foreach (Room r in roomList)
@@ -415,8 +435,19 @@ namespace Roguelike
                 CheckForDoors(r);
             }
 
+            //GENERATING ITEMS
+            for (int i = 0; i < 10; i++)
+            {
+                Point temp = GenerateFreePos();
+                if (temp != Point.Zero)
+                {
+                    mapArray[temp.X, temp.Y] = (int)Element.Item;
+                }
+            }
+            //////////////////
+
             mapString = ArrayToString(mapArray);
-            controller.player.position = GenerateFreePos();
+            controller.camera.ResetPosition();
         }
 
         public bool CheckIfAllConnected(List<Room> list)
@@ -452,26 +483,32 @@ namespace Roguelike
 
             if (Keyboard.GetState().IsKeyDown(Keys.Space))
             {
-                CreateRandomLevel(13, 3, 3, 4, 4);
+                CreateRandomLevel(15, 2, 1, 5, 4);
                 mapArray = StringToArray(mapString);
+                //controller.camera.ResetPosition();
             }
 
+            //zoooooooooooom
             if (prevMouse.ScrollWheelValue != mouse.ScrollWheelValue)
             {
                 if (mouse.ScrollWheelValue - prevMouse.ScrollWheelValue > 0)
                 {
-                    scale += 0.05f;
+                    if (scale + 0.05 < 5)
+                        scale += 0.05f;
                 }
                 else if (mouse.ScrollWheelValue - prevMouse.ScrollWheelValue < 0)
                 {
-                    scale -= 0.05f;
-                } 
+                    if (scale - 0.05 > 0)
+                        scale -= 0.05f;
+                }
             }
+
             mapArray[controller.player.position.X, controller.player.position.Y] = (int)Element.Player;
         }
 
         public void Draw(SpriteBatch spriteBatch, ContentManager contentManager)
         {
+            int tileSize = contentManager.tWall.Width;
             for (int ix = 0; ix < mapArray.GetLength(0); ix++)
             {
                 for (int iy = 0; iy < mapArray.GetLength(1); iy++)
@@ -480,22 +517,22 @@ namespace Roguelike
                     {
                         case (int)Element.Wall: //wall
                             {
-                                spriteBatch.Draw(contentManager.tWall, new Vector2(ix * contentManager.tWall.Width * scale, iy * contentManager.tWall.Height * scale), null, Color.White, 0, Vector2.Zero, scale, SpriteEffects.None, 1);
+                                spriteBatch.Draw(contentManager.tWall, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
                                 break;
                             }
                         case (int)Element.Player: //player
                             {
-                                spriteBatch.Draw(contentManager.tPlayer, new Vector2(ix * contentManager.tWall.Width * scale, iy * contentManager.tWall.Height * scale), null, Color.White, 0, Vector2.Zero, scale, SpriteEffects.None, 1);
+                                spriteBatch.Draw(contentManager.tPlayer, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
                                 break;
                             }
                         case (int)Element.Door: //door
                             {
-                                spriteBatch.Draw(contentManager.tDoor, new Vector2(ix * contentManager.tWall.Width * scale, iy * contentManager.tWall.Height * scale), null, Color.White, 0, Vector2.Zero, scale, SpriteEffects.None, 1);
+                                spriteBatch.Draw(contentManager.tDoor, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
                                 break;
                             }
                         case (int)Element.Item: //item
                             {
-                                spriteBatch.Draw(contentManager.tPotion, new Vector2(ix * contentManager.tWall.Width * scale, iy * contentManager.tWall.Height * scale), null, Color.White, 0, Vector2.Zero, scale, SpriteEffects.None, 1);
+                                spriteBatch.Draw(contentManager.tPotion, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
                                 break;
                             }
                     }
@@ -505,7 +542,7 @@ namespace Roguelike
 
             foreach (Room r in roomList)
             {
-                spriteBatch.DrawString(contentManager.font, r.ToString(), new Vector2((float)r.cornerNW.X * 32, (float)r.cornerNW.Y * 32) * scale, Color.Green, 0, Vector2.Zero, scale, SpriteEffects.None, 1);
+                spriteBatch.DrawString(contentManager.font, r.ToString(), new Vector2((float)r.cornerNW.X * tileSize, (float)r.cornerNW.Y * tileSize), Color.Green, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
             }
         }
     }

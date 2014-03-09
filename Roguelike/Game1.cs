@@ -51,7 +51,7 @@ namespace Roguelike
             contentManager.tDoor = Content.Load<Texture2D>("Sprites/door");
             contentManager.font = Content.Load<SpriteFont>("Fonts/tahoma");
 
-            gamePlay = new Gameplay(contentManager);
+            gamePlay = new Gameplay(contentManager, graphics);
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace Roguelike
         {
             GraphicsDevice.Clear(Color.Silver);
 
-            spriteBatch.Begin();
+            spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, null, null, null, null, gamePlay.controller.camera.GetTransformMatrix());
             gamePlay.Draw(spriteBatch);
             spriteBatch.End();
 

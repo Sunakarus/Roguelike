@@ -35,6 +35,7 @@
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Camera.cs" />
     <Compile Include="ContentManager.cs" />
     <Compile Include="Controller.cs" />
     <Compile Include="Game1.cs" />
