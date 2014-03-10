@@ -1,6 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 
 namespace Roguelike
 {
@@ -10,6 +9,10 @@ namespace Roguelike
         public Point position;
         public Controller controller;
 
+        public float health;
+        public float maxHealth = 10;
+        public float damage = 2;
+
         public enum Movement { Left, Up, Right, Down }
 
         public Enemy(Controller controller, Texture2D texture, Point position)
@@ -17,6 +20,8 @@ namespace Roguelike
             this.texture = texture;
             this.position = position;
             this.controller = controller;
+
+            health = maxHealth;
         }
 
         public void Move()
@@ -26,15 +31,13 @@ namespace Roguelike
             Vector2 playerPos = new Vector2(controller.player.position.X, controller.player.position.Y);
             Vector2 myPos = new Vector2(position.X, position.Y);
             Vector2 preferred = Vector2.Zero;
-
-
-
             double distance = (playerPos - myPos).Length();
 
-            if (playerPos == myPos || (distance > controller.map.floorSize/8))
+            if (playerPos == myPos || (distance > controller.map.floorSize / 8) || Attack())
             {
                 return;
             }
+
 
             futurePos = new Vector2(position.X, position.Y + 1);
             if ((playerPos - futurePos).Length() < distance && controller.map.IsWalkable(new Point((int)futurePos.X, (int)futurePos.Y)))
@@ -77,6 +80,24 @@ namespace Roguelike
                     position = dir;
                 }
             }
+        }
+
+        public bool Attack()
+        {
+            Point playerPos = controller.player.position;
+            Point pointLeft, pointRight, pointUp, pointDown;
+            pointLeft = new Point(position.X - 1, position.Y);
+            pointRight = new Point(position.X + 1, position.Y);
+            pointUp = new Point(position.X, position.Y - 1);
+            pointDown = new Point(position.X, position.Y + 1);
+
+            if (!(playerPos == pointLeft || playerPos == pointRight || playerPos == pointUp || playerPos == pointDown))
+            {
+                return false;
+            }
+
+            controller.player.health -= damage;
+            return true;
         }
     }
 }

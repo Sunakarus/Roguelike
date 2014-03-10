@@ -9,6 +9,7 @@ namespace Roguelike
         private KeyboardState state, prevState;
         public Point position;
         public bool stepped = false;
+        public float health, maxHealth = 15, damage = 5;
 
         public enum Movement { Left, Up, Right, Down }
 
@@ -17,6 +18,8 @@ namespace Roguelike
             this.controller = controller;
             state = Keyboard.GetState();
             position = new Point(0, 0);
+            health = maxHealth;
+
         }
 
         public void Update()
@@ -24,19 +27,19 @@ namespace Roguelike
             prevState = state;
             state = Keyboard.GetState();
 
-            if (state.IsKeyDown(Keys.A) && prevState.IsKeyUp(Keys.A))
+            if (state.IsKeyDown(Keys.A) && prevState.IsKeyUp(Keys.A) || state.IsKeyDown(Keys.Left) && prevState.IsKeyUp(Keys.Left))
             {
                 Move(Movement.Left);
             }
-            if (state.IsKeyDown(Keys.D) && prevState.IsKeyUp(Keys.D))
+            if (state.IsKeyDown(Keys.D) && prevState.IsKeyUp(Keys.D) || state.IsKeyDown(Keys.Right) && prevState.IsKeyUp(Keys.Right))
             {
                 Move(Movement.Right);
             }
-            if (state.IsKeyDown(Keys.W) && prevState.IsKeyUp(Keys.W))
+            if (state.IsKeyDown(Keys.W) && prevState.IsKeyUp(Keys.W) || state.IsKeyDown(Keys.Up) && prevState.IsKeyUp(Keys.Up))
             {
                 Move(Movement.Up);
             }
-            if (state.IsKeyDown(Keys.S) && prevState.IsKeyUp(Keys.S))
+            if (state.IsKeyDown(Keys.S) && prevState.IsKeyUp(Keys.S) || state.IsKeyDown(Keys.Down) && prevState.IsKeyUp(Keys.Down))
             {
                 Move(Movement.Down);
             }
@@ -44,6 +47,11 @@ namespace Roguelike
 
         public void Move(Movement movement)
         {
+            if (stepped)
+            {
+                return;
+            }
+
             Point futurePos = Point.Zero;
             switch (movement)
             {
@@ -69,18 +77,18 @@ namespace Roguelike
                     }
             }
 
-            if (!controller.map.OutOfBounds(futurePos) && !controller.map.IsElement(futurePos, Map.Element.Wall) && 
+            if (!controller.map.OutOfBounds(futurePos) && !controller.map.IsElement(futurePos, Map.Element.Wall) &&
             !controller.map.IsElement(futurePos, Map.Element.Enemy))
             {
                 position = futurePos;
             }
             else if (controller.map.IsElement(futurePos, Map.Element.Enemy))
             {
-                for (int i = controller.map.enemyList.Count -1; i>-1; i--)
+                for (int i = controller.map.enemyList.Count - 1; i > -1; i--)
                 {
                     if (controller.map.enemyList[i].position == futurePos)
                     {
-                        controller.map.enemyList.RemoveAt(i);
+                        controller.map.enemyList[i].health -= controller.player.damage;
                     }
                 }
             }

@@ -5,12 +5,12 @@ namespace Roguelike
 {
     internal class Camera
     {
-        Point position;
+        public Point position;
         Controller controller;
         int tileSize;
         Map map;
         private GraphicsDeviceManager graphics;
-        private float scale, prevScale;
+        public float scale, prevScale;
         private int maxTilesX, maxTilesY;
 
         const float MARGINSIZECONST = 2.5f; //must be larger than 2.0 to prevent jittering

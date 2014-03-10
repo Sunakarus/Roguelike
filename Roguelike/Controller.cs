@@ -20,8 +20,6 @@ namespace Roguelike
             camera = new Camera(this, player.position, 32);
 
             map.CreateRandomLevel(15, 2, 1, 5, 4);
-            
-
         }
 
         public void Update()

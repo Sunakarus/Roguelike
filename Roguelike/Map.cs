@@ -356,6 +356,7 @@ namespace Roguelike
             GenerateEmptyFloor();
             roomList.Clear();
             enemyList.Clear();
+            controller.player.health = controller.player.maxHealth;
 
             while (roomList.Count == 0 || !CheckIfAllConnected(roomList))
             {
@@ -511,7 +512,7 @@ namespace Roguelike
             for (int i = 0; i < numberOfRooms; i++)
             {
                 temp = GenerateFreePos();
-                if (temp != Point.Zero)
+                if (temp != Point.Zero && temp != controller.player.position)
                 {
                     mapArray[temp.X, temp.Y] = (int)Element.Item;
                 }
@@ -521,9 +522,8 @@ namespace Roguelike
             for (int i = 0; i < numberOfRooms; i++)
             {
                 temp = GenerateFreePos();
-                if (temp != Point.Zero)
+                if (temp != Point.Zero && temp != controller.player.position)
                 {
-                    //mapArray[temp.X, temp.Y] = (int)Element.Enemy;
                     enemyList.Add(new Enemy(controller, ContentManager.tSkeleton, temp));
                 }
             }
@@ -595,14 +595,28 @@ namespace Roguelike
             {
                 mapArray[controller.player.position.X, controller.player.position.Y] = (int)Map.Element.Nothing;
                 mapString = ArrayToString(mapArray);
+                controller.player.health += (int)controller.player.maxHealth / 2;
                 //add item to player inventory etc
             }
 
             if (controller.player.stepped && Keyboard.GetState().IsKeyUp(Keys.Q))
             {
-                foreach (Enemy e in enemyList)
+                for (int i = enemyList.Count - 1; i > -1; i--)
                 {
-                    e.Move();
+                    if (enemyList[i].health <= 0)
+                    {
+                        enemyList.RemoveAt(i);
+                        continue;
+                    }
+                    enemyList[i].Move();
+                }
+                if (controller.player.health <= 0)
+                {
+                    controller.player.health = 0;
+                }
+                else if (controller.player.health >= controller.player.maxHealth)
+                {
+                    controller.player.health = controller.player.maxHealth;
                 }
                 controller.player.stepped = false;
             }
@@ -626,27 +640,28 @@ namespace Roguelike
                     {
                         case (int)Element.Wall:
                             {
-                                spriteBatch.Draw(ContentManager.tWall, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
+                                spriteBatch.Draw(ContentManager.tWall, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
                                 break;
                             }
                         case (int)Element.Player:
                             {
-                                spriteBatch.Draw(ContentManager.tPlayer, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
+                                spriteBatch.Draw(ContentManager.tHealthBar, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, new Vector2(tileSize * (controller.player.health / controller.player.maxHealth), tileSize / 10), SpriteEffects.None, 1);
+                                spriteBatch.Draw(ContentManager.tPlayer, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
                                 break;
                             }
                         case (int)Element.Door:
                             {
-                                spriteBatch.Draw(ContentManager.tDoor, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
+                                spriteBatch.Draw(ContentManager.tDoor, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
                                 break;
                             }
                         case (int)Element.Item:
                             {
-                                spriteBatch.Draw(ContentManager.tPotion, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
+                                spriteBatch.Draw(ContentManager.tPotion, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
                                 break;
                             }
                         case (int)Element.DoorOpen:
                             {
-                                spriteBatch.Draw(ContentManager.tDoorOpen, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
+                                spriteBatch.Draw(ContentManager.tDoorOpen, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
                                 break;
                             }
                         case (int)Element.Enemy:
@@ -655,7 +670,8 @@ namespace Roguelike
                                 {
                                     if (e.position == new Point(ix, iy))
                                     {
-                                        spriteBatch.Draw(e.texture, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
+                                        spriteBatch.Draw(ContentManager.tHealthBar, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, new Vector2(tileSize * (e.health / e.maxHealth), tileSize / 10), SpriteEffects.None, 1);
+                                        spriteBatch.Draw(e.texture, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
                                         break;
                                     }
                                 }
@@ -669,6 +685,7 @@ namespace Roguelike
             {
                 spriteBatch.DrawString(ContentManager.font, r.ToString(), new Vector2((float)r.cornerNW.X * tileSize, (float)r.cornerNW.Y * tileSize), Color.Green, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
             }
+            spriteBatch.DrawString(ContentManager.font, "HEALTH: " + controller.player.health + "/" + controller.player.maxHealth, new Vector2(controller.camera.position.X * tileSize, controller.camera.position.Y * tileSize), Color.Red, 0, Vector2.Zero, 1 / controller.camera.scale, SpriteEffects.None, 1);
         }
     }
 }
