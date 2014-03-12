@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using System.Collections.Generic;
 
 namespace Roguelike
 {
@@ -12,8 +13,12 @@ namespace Roguelike
         public Camera camera;
         public GraphicsDeviceManager graphics;
         public int level = 1;
+
         public const int LEVELCAP = 30;
         public const int STARTMAPSIZE = 15;
+        public const int INVENTORYSIZE = 8;
+
+        public List<Item> inventory = new List<Item>();
 
         public Controller(GraphicsDeviceManager graphics)
         {
@@ -23,13 +28,12 @@ namespace Roguelike
             camera = new Camera(this, player.position, 32);
             player.health = player.maxHealth;
             map.CreateRandomLevel(3 + (int)level / 2, 2 + (int)level / 10, 2 + (int)level / 10, 3 + (int)level / 10, 3 + (int)level / 10);
-            
         }
 
         public void MapLevelUp()
         {
             level++;
-            
+
             if (level < LEVELCAP)
             {
                 map.floorSize = 15 + level * 2;

@@ -18,11 +18,12 @@ namespace Roguelike
         public List<Room> roomList = new List<Room>();
         public List<Room> bigRoomList = new List<Room>();
         public List<Enemy> enemyList = new List<Enemy>();
+        public List<Item> itemList = new List<Item>();
 
         public string mapString = "";
         public float scale = 0.8f;
-        float minimapSize = 150;
-        float minimapScale;
+        private float minimapSize = 150;
+        private float minimapScale;
         private MouseState mouse, prevMouse;
 
         public Map(Controller controller, int floorSize)
@@ -73,13 +74,13 @@ namespace Roguelike
             for (int ix = 0; ix < mapArray.GetLength(0); ix++)
             {
                 for (int iy = 0; iy < mapArray.GetLength(1); iy++)
-                 {
+                {
                     mapArray[ix, iy] = (int)Element.Wall;
                 }
             }
         }
 
-        private void GenerateRandomRoom(int minX, int minY)
+       /* private void GenerateRandomRoom(int minX, int minY)
         {
             int a, b, c, d;
             do
@@ -108,6 +109,7 @@ namespace Roguelike
 
             GenerateRoom(new Point(a, b), new Point(c, d));
         }
+        */
 
         private void GenerateRandomIsolatedRoom(int minX, int minY, int maxX, int maxY)
         {
@@ -148,7 +150,7 @@ namespace Roguelike
                 return;
             }
             GenerateRoom(new Point(a, b), new Point(c, d));
-             bigRoomList.Add(roomList[roomList.Count-1]);
+            bigRoomList.Add(roomList[roomList.Count - 1]);
         }
 
         public bool IsElement(Point position, Element elem)
@@ -207,15 +209,6 @@ namespace Roguelike
             }
             return false;
         }
-
-        /*public bool OutOfBounds(Room room)
-        {
-            if (room.cornerSE.X > floorSize || room.cornerNW.Y > floorSize || room.cornerSE.X < 0 || room.cornerNW.Y < 0)
-            {
-                return true;
-            }
-            return false;
-        }*/
 
         /*public bool IsIsolated(Room room)
         {
@@ -361,6 +354,7 @@ namespace Roguelike
             roomList.Clear();
             bigRoomList.Clear();
             enemyList.Clear();
+            itemList.Clear();
             //controller.player.health = controller.player.maxHealth;
 
             while (roomList.Count == 0 || !CheckIfAllConnected(roomList))
@@ -369,6 +363,7 @@ namespace Roguelike
                 roomList.Clear();
                 bigRoomList.Clear();
                 enemyList.Clear();
+                itemList.Clear();
                 //CREATE BIG ROOMS
                 for (int i = 0; i < numberOfRooms; i++)
                 {
@@ -467,7 +462,6 @@ namespace Roguelike
             while (!posInBig);
             mapArray[stairs.X, stairs.Y] = (int)Element.Stairs;
 
-
             //PLAYER
             do
             {
@@ -551,22 +545,43 @@ namespace Roguelike
             }*/
 
             Point temp;
-            for (int i = 0; i < numberOfRooms; i++)
+            /*for (int i = 0; i < numberOfRooms; i++)
             {
                 temp = GenerateFreePos();
                 if (temp != Point.Zero && temp != controller.player.position)
                 {
                     mapArray[temp.X, temp.Y] = (int)Element.Item;
+                    itemList.Add(new Item(controller, temp, Item.ItemType.Potion));
                 }
-            }
-            //////////////////
-            //ENEMIES
+            }*/
+
             bool overlap = false;
             for (int i = 0; i < numberOfRooms; i++)
             {
                 overlap = false;
                 temp = GenerateFreePos();
-                foreach(Enemy e in enemyList)
+                foreach (Item it in itemList)
+                {
+                    if (temp == it.position)
+                    {
+                        overlap = true;
+                    }
+                }
+                if (temp != Point.Zero && temp != controller.player.position && !overlap)
+                {
+                    Type t = typeof(Item.ItemType);
+                    itemList.Add(new Item(controller, temp, (Item.ItemType)controller.random.Next(Enum.GetValues(t).Length)));
+                    mapArray[temp.X, temp.Y] = (int)Element.Item;
+                }
+            }
+            //////////////////
+            //ENEMIES
+            overlap = false;
+            for (int i = 0; i < numberOfRooms; i++)
+            {
+                overlap = false;
+                temp = GenerateFreePos();
+                foreach (Enemy e in enemyList)
                 {
                     if (temp == e.position)
                     {
@@ -575,7 +590,7 @@ namespace Roguelike
                 }
                 if (temp != Point.Zero && temp != controller.player.position && !overlap)
                 {
-                    Type t = typeof (Enemy.EnemyType);
+                    Type t = typeof(Enemy.EnemyType);
                     enemyList.Add(new Enemy(controller, temp, (Enemy.EnemyType)controller.random.Next(Enum.GetValues(t).Length)));
                 }
             }
@@ -619,7 +634,6 @@ namespace Roguelike
             {
                 controller.MapLevelUp();
                 mapArray = StringToArray(mapString);
-                //controller.camera.ResetPosition();
             }
 
             //zoooooooooooom
@@ -642,7 +656,6 @@ namespace Roguelike
                 mapArray[controller.player.position.X, controller.player.position.Y] = (int)Map.Element.DoorOpen;
                 mapString = ArrayToString(mapArray);
             }
-
 
             if (controller.player.stepped)
             {
@@ -677,20 +690,27 @@ namespace Roguelike
         public void Draw(SpriteBatch spriteBatch)
         {
             int tileSize = ContentManager.tWall.Width;
-            minimapScale = minimapSize/(floorSize * tileSize);
+            minimapScale = minimapSize / (floorSize * tileSize);
+
+            //DRAW BACKGROUND
+            /*spriteBatch.Draw(ContentManager.tWall, new Rectangle((int)controller.camera.position.X * tileSize, (int)controller.camera.position.Y * tileSize, (int)(controller.graphics.PreferredBackBufferWidth / controller.camera.scale), (int)(controller.graphics.PreferredBackBufferHeight / controller.camera.scale)), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);*/
+
             for (int ix = 0; ix < mapArray.GetLength(0); ix++)
             {
                 for (int iy = 0; iy < mapArray.GetLength(1); iy++)
                 {
                     //minimap math
                     Vector2 minimapPos = new Vector2(controller.camera.position.X * tileSize + ix * tileSize * minimapScale / controller.camera.scale, controller.camera.position.Y * tileSize + iy * tileSize * minimapScale / controller.camera.scale);
-                    minimapPos.X += (controller.graphics.PreferredBackBufferWidth - floorSize*tileSize*minimapScale)/controller.camera.scale;
+                    minimapPos.X += (controller.graphics.PreferredBackBufferWidth - floorSize * tileSize * minimapScale) / controller.camera.scale;
 
+                    spriteBatch.Draw(ContentManager.tFloor, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.01f);
+                    //minimap
+                    spriteBatch.Draw(ContentManager.tFloor, minimapPos, null, Color.White, 0, Vector2.Zero, minimapScale / controller.camera.scale, SpriteEffects.None, 0.99f);
                     switch (mapArray[ix, iy])
                     {
                         case (int)Element.Wall:
                             {
-                                spriteBatch.Draw(ContentManager.tWall, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
+                                spriteBatch.Draw(ContentManager.tWall, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.1f);
                                 //minimap
                                 spriteBatch.Draw(ContentManager.tWall, minimapPos, null, Color.White, 0, Vector2.Zero, minimapScale / controller.camera.scale, SpriteEffects.None, 1);
 
@@ -698,36 +718,42 @@ namespace Roguelike
                             }
                         case (int)Element.Player:
                             {
-                                spriteBatch.Draw(ContentManager.tHealthBar, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, new Vector2(tileSize * (controller.player.health / controller.player.maxHealth), tileSize / 10), SpriteEffects.None, 1);
-                                spriteBatch.Draw(ContentManager.tPlayer, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
+                                spriteBatch.Draw(ContentManager.tHealthBar, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, new Vector2(tileSize * (controller.player.health / controller.player.maxHealth), tileSize / 10), SpriteEffects.None, 0.98f);
+                                spriteBatch.Draw(ContentManager.tPlayer, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.1f);
                                 //minimap
                                 spriteBatch.Draw(ContentManager.tPlayer, minimapPos, null, Color.White, 0, Vector2.Zero, minimapScale / controller.camera.scale, SpriteEffects.None, 1);
                                 break;
                             }
                         case (int)Element.Door:
                             {
-                                spriteBatch.Draw(ContentManager.tDoor, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
+                                spriteBatch.Draw(ContentManager.tDoor, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.1f);
                                 //minimap
                                 spriteBatch.Draw(ContentManager.tDoor, minimapPos, null, Color.White, 0, Vector2.Zero, minimapScale / controller.camera.scale, SpriteEffects.None, 1);
                                 break;
                             }
                         case (int)Element.Item:
                             {
-                                spriteBatch.Draw(ContentManager.tPotion, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
-                                //minimap
-                                spriteBatch.Draw(ContentManager.tPotion, minimapPos, null, Color.White, 0, Vector2.Zero, minimapScale / controller.camera.scale, SpriteEffects.None, 1);
+                                foreach (Item it in itemList)
+                                {
+                                    if (it.position == new Point(ix, iy))
+                                    {
+                                        spriteBatch.Draw(it.texture, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.1f);
+                                        //minimap
+                                        spriteBatch.Draw(it.texture, minimapPos, null, Color.White, 0, Vector2.Zero, minimapScale / controller.camera.scale, SpriteEffects.None, 1);
+                                    }
+                                }
                                 break;
                             }
                         case (int)Element.DoorOpen:
                             {
-                                spriteBatch.Draw(ContentManager.tDoorOpen, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
+                                spriteBatch.Draw(ContentManager.tDoorOpen, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.1f);
                                 //minimap
                                 spriteBatch.Draw(ContentManager.tDoorOpen, minimapPos, null, Color.White, 0, Vector2.Zero, minimapScale / controller.camera.scale, SpriteEffects.None, 1);
                                 break;
                             }
                         case (int)Element.Stairs:
                             {
-                                spriteBatch.Draw(ContentManager.tStairs, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
+                                spriteBatch.Draw(ContentManager.tStairs, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.1f);
                                 //minimap
                                 spriteBatch.Draw(ContentManager.tStairs, minimapPos, null, Color.White, 0, Vector2.Zero, minimapScale / controller.camera.scale, SpriteEffects.None, 1);
                                 break;
@@ -738,8 +764,8 @@ namespace Roguelike
                                 {
                                     if (e.position == new Point(ix, iy))
                                     {
-                                        spriteBatch.Draw(ContentManager.tHealthBar, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, new Vector2(tileSize * (e.health / e.maxHealth), tileSize / 10), SpriteEffects.None, 1);
-                                        spriteBatch.Draw(e.texture, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
+                                        spriteBatch.Draw(ContentManager.tHealthBar, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, new Vector2(tileSize * (e.health / e.maxHealth), tileSize / 10), SpriteEffects.None, 0.98f);
+                                        spriteBatch.Draw(e.texture, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.1f);
                                         //minimap
                                         spriteBatch.Draw(e.texture, minimapPos, null, Color.White, 0, Vector2.Zero, minimapScale / controller.camera.scale, SpriteEffects.None, 1);
                                         break;
@@ -756,7 +782,12 @@ namespace Roguelike
                 spriteBatch.DrawString(ContentManager.font, r.ToString(), new Vector2((float)r.cornerNW.X * tileSize, (float)r.cornerNW.Y * tileSize), Color.Green, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
             }
             */
-            spriteBatch.DrawString(ContentManager.font, "HEALTH: " + controller.player.health + "/" + controller.player.maxHealth + "\nLEVEL: " + controller.level + "\nENEMY COUNT: " + enemyList.Count + "\nPress E to interact", new Vector2(controller.camera.position.X * tileSize, controller.camera.position.Y * tileSize), Color.Red, 0, Vector2.Zero, 1 / controller.camera.scale, SpriteEffects.None, 1);
+            spriteBatch.DrawString(ContentManager.font, "HEALTH: " + controller.player.health + "/" + controller.player.maxHealth + "\nLEVEL: " + controller.level + "\nENEMY COUNT: " + enemyList.Count + "\nE: Interact\nF: Use potion", new Vector2(controller.camera.position.X * tileSize, controller.camera.position.Y * tileSize), Color.Red, 0, Vector2.Zero, 1 / controller.camera.scale, SpriteEffects.None, 1);
+
+            for (int i = 0; i < controller.inventory.Count; i++)
+            {
+                spriteBatch.DrawString(ContentManager.font, (i + 1) + ") " + controller.inventory[i].ToString(), new Vector2(controller.camera.position.X * tileSize, controller.camera.position.Y * tileSize + i * tileSize / 1.4f / controller.camera.scale + 130 / controller.camera.scale), Color.DarkGoldenrod, 0, Vector2.Zero, 1 / controller.camera.scale, SpriteEffects.None, 1);
+            }
         }
     }
 }

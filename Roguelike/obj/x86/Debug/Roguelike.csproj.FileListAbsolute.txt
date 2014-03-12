@@ -18,3 +18,4 @@ C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\obj\x86\Debug\R
 C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Debug\Content\Sprites\health.png
 C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Debug\Content\Sprites\stairs.png
 C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Debug\Content\Sprites\bat.png
+C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Debug\Content\Sprites\floor.png

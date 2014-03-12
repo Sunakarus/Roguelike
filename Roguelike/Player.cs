@@ -52,17 +52,40 @@ namespace Roguelike
                         controller.MapLevelUp();
                         stepped = true;
                     }
-                    else if (tempMapArray[position.X, position.Y] == (int)Map.Element.Item)
+                    else if (tempMapArray[position.X, position.Y] == (int)Map.Element.Item && controller.inventory.Count < Controller.INVENTORYSIZE)
                     {
                         tempMapArray[controller.player.position.X, controller.player.position.Y] = (int)Map.Element.Nothing;
-                        controller.map.mapString = controller.map.ArrayToString(tempMapArray);
-                        health += (int)maxHealth / 2;
+                        //controller.map.mapString = controller.map.ArrayToString(tempMapArray);
+                        //health += (int)maxHealth / 2;
                         stepped = true;
-                        //picking up items etc
+
+                        for (int i = controller.map.itemList.Count - 1; i > -1; i--)
+                        {
+                            if (controller.map.itemList[i].position == position)
+                            {
+                                controller.inventory.Add(controller.map.itemList[i]);
+                                controller.map.itemList.RemoveAt(i);
+                                break;
+                            }
+                        }
                     }
                 }
-
             }
+            //healing
+            if (state.IsKeyDown(Keys.F) && prevState.IsKeyUp(Keys.F) && !stepped)
+            {
+                for (int i = 0; i < controller.inventory.Count; i++)
+                {
+                    if (controller.inventory[i].itemType == Item.ItemType.Potion)
+                    {
+                        controller.inventory.RemoveAt(i);
+                        health += (int)maxHealth / 2;
+                        stepped = true;
+                        break;
+                    }
+                }
+            }
+
             if (health <= 0)
             {
                 health = 0;
@@ -71,6 +94,7 @@ namespace Roguelike
             {
                 health = maxHealth;
             }
+
         }
 
         public void Move(Movement movement)

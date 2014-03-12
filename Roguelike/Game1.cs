@@ -43,7 +43,6 @@ namespace Roguelike
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            //contentManager = new ContentManager();
             ContentManager.tPlayer = Content.Load<Texture2D>("Sprites/dwarf");
             ContentManager.tWall = Content.Load<Texture2D>("Sprites/wall");
             ContentManager.tPotion = Content.Load<Texture2D>("Sprites/potion");
@@ -54,6 +53,7 @@ namespace Roguelike
             ContentManager.tHealthBar = Content.Load<Texture2D>("Sprites/health");
             ContentManager.tStairs = Content.Load<Texture2D>("Sprites/stairs");
             ContentManager.tBat = Content.Load<Texture2D>("Sprites/bat");
+            ContentManager.tFloor = Content.Load<Texture2D>("Sprites/floor");
 
             gamePlay = new Gameplay(graphics);
         }

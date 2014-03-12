@@ -13,9 +13,10 @@ namespace Roguelike
         public float maxHealth;
         public float damage;
 
-        public enum EnemyType { Skeleton = 0, Bat = 1}
+        public enum EnemyType { Skeleton = 0, Bat = 1 }
+
         public enum Movement { Left, Up, Right, Down }
-        
+
         public Enemy(Controller controller, Point position, EnemyType enemyType)
         {
             this.position = position;
@@ -54,7 +55,6 @@ namespace Roguelike
             {
                 return;
             }
-
 
             futurePos = new Vector2(position.X, position.Y + 1);
             if ((playerPos - futurePos).Length() < distance && controller.map.IsWalkable(new Point((int)futurePos.X, (int)futurePos.Y)))
