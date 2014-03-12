@@ -10,17 +10,34 @@ namespace Roguelike
         public Controller controller;
 
         public float health;
-        public float maxHealth = 10;
-        public float damage = 2;
+        public float maxHealth;
+        public float damage;
 
+        public enum EnemyType { Skeleton = 0, Bat = 1}
         public enum Movement { Left, Up, Right, Down }
-
-        public Enemy(Controller controller, Texture2D texture, Point position)
+        
+        public Enemy(Controller controller, Point position, EnemyType enemyType)
         {
-            this.texture = texture;
             this.position = position;
             this.controller = controller;
 
+            switch (enemyType)
+            {
+                case EnemyType.Skeleton:
+                    {
+                        texture = ContentManager.tSkeleton;
+                        damage = 2;
+                        maxHealth = 10;
+                        break;
+                    }
+                case EnemyType.Bat:
+                    {
+                        texture = ContentManager.tBat;
+                        damage = 1;
+                        maxHealth = 8;
+                        break;
+                    }
+            }
             health = maxHealth;
         }
 

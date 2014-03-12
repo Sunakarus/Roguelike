@@ -11,15 +11,36 @@ namespace Roguelike
         public Random random = new Random();
         public Camera camera;
         public GraphicsDeviceManager graphics;
+        public int level = 1;
+        public const int LEVELCAP = 30;
+        public const int STARTMAPSIZE = 15;
 
         public Controller(GraphicsDeviceManager graphics)
         {
             this.graphics = graphics;
-            map = new Map(this, 50);
+            map = new Map(this, STARTMAPSIZE + level * 2);
             player = new Player(this);
             camera = new Camera(this, player.position, 32);
+            player.health = player.maxHealth;
+            map.CreateRandomLevel(3 + (int)level / 2, 2 + (int)level / 10, 2 + (int)level / 10, 3 + (int)level / 10, 3 + (int)level / 10);
+            
+        }
 
-            map.CreateRandomLevel(15, 2, 1, 5, 4);
+        public void MapLevelUp()
+        {
+            level++;
+            
+            if (level < LEVELCAP)
+            {
+                map.floorSize = 15 + level * 2;
+                map.CreateRandomLevel(3 + (int)level / 2, 2 + (int)level / 10, 2 + (int)level / 10, 3 + (int)level / 10, 3 + (int)level / 10);
+            }
+            else
+            {
+                map.floorSize = 15 + LEVELCAP * 2;
+                map.CreateRandomLevel(3 + (int)LEVELCAP / 2, 2 + (int)LEVELCAP / 10, 2 + (int)LEVELCAP / 10, 3 + (int)LEVELCAP / 10, 3 + (int)LEVELCAP / 10);
+            }
+            map.mapArray = map.StringToArray(map.mapString);
         }
 
         public void Update()

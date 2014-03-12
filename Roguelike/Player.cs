@@ -19,7 +19,6 @@ namespace Roguelike
             state = Keyboard.GetState();
             position = new Point(0, 0);
             health = maxHealth;
-
         }
 
         public void Update()
@@ -42,6 +41,35 @@ namespace Roguelike
             if (state.IsKeyDown(Keys.S) && prevState.IsKeyUp(Keys.S) || state.IsKeyDown(Keys.Down) && prevState.IsKeyUp(Keys.Down))
             {
                 Move(Movement.Down);
+            }
+            if (state.IsKeyDown(Keys.E) && prevState.IsKeyUp(Keys.E))
+            {
+                if (!stepped)
+                {
+                    int[,] tempMapArray = controller.map.StringToArray(controller.map.mapString);
+                    if (tempMapArray[position.X, position.Y] == (int)Map.Element.Stairs)
+                    {
+                        controller.MapLevelUp();
+                        stepped = true;
+                    }
+                    else if (tempMapArray[position.X, position.Y] == (int)Map.Element.Item)
+                    {
+                        tempMapArray[controller.player.position.X, controller.player.position.Y] = (int)Map.Element.Nothing;
+                        controller.map.mapString = controller.map.ArrayToString(tempMapArray);
+                        health += (int)maxHealth / 2;
+                        stepped = true;
+                        //picking up items etc
+                    }
+                }
+
+            }
+            if (health <= 0)
+            {
+                health = 0;
+            }
+            else if (health >= maxHealth)
+            {
+                health = maxHealth;
             }
         }
 
@@ -77,8 +105,9 @@ namespace Roguelike
                     }
             }
 
-            if (!controller.map.OutOfBounds(futurePos) && !controller.map.IsElement(futurePos, Map.Element.Wall) &&
-            !controller.map.IsElement(futurePos, Map.Element.Enemy))
+            //if (!controller.map.OutOfBounds(futurePos) && !controller.map.IsElement(futurePos, Map.Element.Wall) &&
+            //!controller.map.IsElement(futurePos, Map.Element.Enemy))
+            if (!controller.map.OutOfBounds(futurePos) && controller.map.IsWalkable(futurePos) || controller.map.IsElement(futurePos, Map.Element.Door))
             {
                 position = futurePos;
             }
@@ -92,8 +121,8 @@ namespace Roguelike
                     }
                 }
             }
-
             stepped = true;
+
             //TO DO
             //Picking up items, attacking enemies, punchin through walls etc
         }
