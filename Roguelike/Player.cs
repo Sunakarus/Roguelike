@@ -85,6 +85,10 @@ namespace Roguelike
                     }
                 }
             }
+            if (state.IsKeyDown(Keys.I) && prevState.IsKeyUp(Keys.I))
+            {
+                controller.showInv = !controller.showInv;
+            }
 
             if (health <= 0)
             {
@@ -146,6 +150,7 @@ namespace Roguelike
                 }
             }
             stepped = true;
+
 
             //TO DO
             //Picking up items, attacking enemies, punchin through walls etc

@@ -9,7 +9,7 @@ namespace Roguelike
         public Point position;
         public Controller controller;
 
-        public enum ItemType { Potion = 0 }
+        public enum ItemType { Potion = 0, PotionRed = 1 }
 
         public ItemType itemType;
 
@@ -26,6 +26,11 @@ namespace Roguelike
                         this.texture = ContentManager.tPotion;
                         break;
                     }
+                case ItemType.PotionRed:
+                    {
+                        this.texture = ContentManager.tPotionRed;
+                        break;
+                    }
                 default:
                     break;
             }
@@ -37,6 +42,8 @@ namespace Roguelike
             {
                 case ItemType.Potion:
                     return "A vial of potion";
+                case ItemType.PotionRed:
+                    return "A vial of blood";
 
                 default:
                     break;

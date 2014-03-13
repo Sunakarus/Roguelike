@@ -46,6 +46,7 @@ namespace Roguelike
             ContentManager.tPlayer = Content.Load<Texture2D>("Sprites/dwarf");
             ContentManager.tWall = Content.Load<Texture2D>("Sprites/wall");
             ContentManager.tPotion = Content.Load<Texture2D>("Sprites/potion");
+            ContentManager.tPotionRed = Content.Load<Texture2D>("Sprites/potion_red");
             ContentManager.tDoor = Content.Load<Texture2D>("Sprites/door");
             ContentManager.tDoorOpen = Content.Load<Texture2D>("Sprites/door_open");
             ContentManager.tSkeleton = Content.Load<Texture2D>("Sprites/skeleton");
