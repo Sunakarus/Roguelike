@@ -51,5 +51,37 @@ namespace Roguelike
             }
             while (counter != viewDistance);
         }
+
+        public bool ClearView()
+        {
+            int counter = -1;
+            do
+            {
+                counter++;
+                Vector2 newPos = new Vector2(origin.X + direction.X * counter, origin.Y + direction.Y * counter);
+
+                newPos.X = (int)Math.Floor((float)newPos.X);
+                newPos.Y = (int)Math.Floor((float)newPos.Y);
+
+                Point pos = new Point((int)newPos.X, (int)newPos.Y);
+
+                if (controller.map.OutOfBounds(pos))
+                {
+                    break;
+                }
+
+                if (pos == controller.player.position)
+                {
+                    return true;
+                }
+
+                if (controller.map.GetElementAtPos(pos) == (int)Map.Element.Door || controller.map.GetElementAtPos(pos) == (int)Map.Element.Wall)
+                {
+                    return false;
+                }
+            }
+            while (counter != viewDistance);
+            return false;
+        }
     }
 }

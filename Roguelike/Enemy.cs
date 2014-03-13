@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.Collections.Generic;
 
 namespace Roguelike
 {
@@ -12,6 +13,10 @@ namespace Roguelike
         public float health;
         public float maxHealth;
         public float damage;
+        public bool asleep = true;
+        public int viewDistance;
+
+        public Ray rayToPlayer;
 
         public enum EnemyType { Skeleton = 0, Bat = 1 }
 
@@ -22,6 +27,7 @@ namespace Roguelike
             this.position = position;
             this.controller = controller;
 
+
             switch (enemyType)
             {
                 case EnemyType.Skeleton:
@@ -29,6 +35,7 @@ namespace Roguelike
                         texture = ContentManager.tSkeleton;
                         damage = 2;
                         maxHealth = 10;
+                        viewDistance = 5;
                         break;
                     }
                 case EnemyType.Bat:
@@ -36,10 +43,52 @@ namespace Roguelike
                         texture = ContentManager.tBat;
                         damage = 1;
                         maxHealth = 8;
+                        viewDistance = 8;
                         break;
                     }
             }
             health = maxHealth;
+        }
+
+        public bool CanSeePlayer()
+        {
+            Vector2 playerPos = new Vector2(controller.player.position.X, controller.player.position.Y);
+            Vector2 myPos = new Vector2(position.X, position.Y);
+
+            rayToPlayer = new Ray(controller, position, playerPos - myPos, viewDistance);
+
+            List<Ray> rayList = new List<Ray>();
+            for (float ix = -1f; ix <= 1; ix += 1f)
+            {
+                for (float iy = -1f; iy <= 1; iy += 1f)
+                {
+                    if (ix == 0 && iy == 0)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        rayList.Add(new Ray(controller, position, new Vector2(ix, iy), viewDistance));
+                        rayList.Add(new Ray(controller, new Point(position.X - 1, position.Y - 1), new Vector2(ix, iy), viewDistance));
+                        rayList.Add(new Ray(controller, new Point(position.X, position.Y - 1), new Vector2(ix, iy), viewDistance));
+                        rayList.Add(new Ray(controller, new Point(position.X + 1, position.Y - 1), new Vector2(ix, iy), viewDistance));
+                        rayList.Add(new Ray(controller, new Point(position.X - 1, position.Y), new Vector2(ix, iy), viewDistance));
+                        rayList.Add(new Ray(controller, new Point(position.X + 1, position.Y), new Vector2(ix, iy), viewDistance));
+                        rayList.Add(new Ray(controller, new Point(position.X - 1, position.Y + 1), new Vector2(ix, iy), viewDistance));
+                        rayList.Add(new Ray(controller, new Point(position.X, position.Y + 1), new Vector2(ix, iy), viewDistance));
+                        rayList.Add(new Ray(controller, new Point(position.X + 1, position.Y + 1), new Vector2(ix, iy), viewDistance));
+                    }
+                }
+            }
+            foreach (Ray r in rayList)
+            {
+                if (r.ClearView())
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public void Move()
@@ -51,7 +100,7 @@ namespace Roguelike
             Vector2 preferred = Vector2.Zero;
             double distance = (playerPos - myPos).Length();
 
-            if (playerPos == myPos || (distance > controller.map.floorSize / 8) || Attack())
+            if (playerPos == myPos || Attack())
             {
                 return;
             }
