@@ -26,6 +26,7 @@ namespace Roguelike
         private float minimapScale;
         private MouseState mouse, prevMouse;
 
+        public string message = "";
         public const float FOGINTENSITY = 0.1f;
 
         public Map(Controller controller, int floorSize)
@@ -491,7 +492,7 @@ namespace Roguelike
                 if (temp != Point.Zero && temp != controller.player.position && !overlap)
                 {
                     Type t = typeof(Item.ItemType);
-                    itemList.Add(new Item(controller, temp, (Item.ItemType)controller.random.Next(Enum.GetValues(t).Length)));
+                    itemList.Add(new Item(controller, temp, (Item.ItemType)controller.random.Next(Enum.GetValues(t).Length), (Map.Element)mapArray[temp.X, temp.Y]));
                     mapArray[temp.X, temp.Y] = (int)Element.Item;
                 }
             }
@@ -570,7 +571,7 @@ namespace Roguelike
         {
             //FOG
             GenerateSightArray(out sightArray);
-            sightArray[controller.player.position.X, controller.player.position.Y] = 0;
+            //sightArray[controller.player.position.X, controller.player.position.Y] = 0;
             List<Ray> rayList = new List<Ray>();
             for (float ix = -1f; ix <= 1; ix += 1f)
             {
@@ -582,15 +583,15 @@ namespace Roguelike
                     }
                     else
                     {
-                        //rayList.Add(new Ray(controller, controller.player.position, new Vector2(ix, iy), 10));
-                        rayList.Add(new Ray(controller, new Point(controller.player.position.X - 1, controller.player.position.Y - 1), new Vector2(ix, iy), 10));
-                        rayList.Add(new Ray(controller, new Point(controller.player.position.X, controller.player.position.Y - 1), new Vector2(ix, iy), 10));
-                        rayList.Add(new Ray(controller, new Point(controller.player.position.X + 1, controller.player.position.Y - 1), new Vector2(ix, iy), 10));
-                        rayList.Add(new Ray(controller, new Point(controller.player.position.X - 1, controller.player.position.Y), new Vector2(ix, iy), 10));
-                        rayList.Add(new Ray(controller, new Point(controller.player.position.X + 1, controller.player.position.Y), new Vector2(ix, iy), 10));
-                        rayList.Add(new Ray(controller, new Point(controller.player.position.X - 1, controller.player.position.Y + 1), new Vector2(ix, iy), 10));
-                        rayList.Add(new Ray(controller, new Point(controller.player.position.X, controller.player.position.Y + 1), new Vector2(ix, iy), 10));
-                        rayList.Add(new Ray(controller, new Point(controller.player.position.X + 1, controller.player.position.Y + 1), new Vector2(ix, iy), 10));
+                        rayList.Add(new Ray(controller, controller.player.position, new Vector2(ix, iy), controller.player.viewDistance));
+                        rayList.Add(new Ray(controller, new Point(controller.player.position.X - 1, controller.player.position.Y - 1), new Vector2(ix, iy), controller.player.viewDistance));
+                        rayList.Add(new Ray(controller, new Point(controller.player.position.X, controller.player.position.Y - 1), new Vector2(ix, iy), controller.player.viewDistance));
+                        rayList.Add(new Ray(controller, new Point(controller.player.position.X + 1, controller.player.position.Y - 1), new Vector2(ix, iy), controller.player.viewDistance));
+                        rayList.Add(new Ray(controller, new Point(controller.player.position.X - 1, controller.player.position.Y), new Vector2(ix, iy), controller.player.viewDistance));
+                        rayList.Add(new Ray(controller, new Point(controller.player.position.X + 1, controller.player.position.Y), new Vector2(ix, iy), controller.player.viewDistance));
+                        rayList.Add(new Ray(controller, new Point(controller.player.position.X - 1, controller.player.position.Y + 1), new Vector2(ix, iy), controller.player.viewDistance));
+                        rayList.Add(new Ray(controller, new Point(controller.player.position.X, controller.player.position.Y + 1), new Vector2(ix, iy), controller.player.viewDistance));
+                        rayList.Add(new Ray(controller, new Point(controller.player.position.X + 1, controller.player.position.Y + 1), new Vector2(ix, iy), controller.player.viewDistance));
                     }
                 }
             }
@@ -661,10 +662,29 @@ namespace Roguelike
                 }
                 GenerateFog();
                 GenerateMinimapFog();
-                
+
+                switch (mapArray[controller.player.position.X, controller.player.position.Y])
+                {
+                    case (int)Element.Stairs:
+                        message = "Press E to go to next level";
+                        break;
+
+                    case (int)Element.Item:
+                        message = "Press E to pick up";
+                        break;
+
+                    default:
+                        message = "";
+                        break;
+                }
                 controller.player.stepped = false;
             }
             //ADD NON STATIC ELEMENTS
+
+            foreach (Item i in itemList)
+            {
+                mapArray[i.position.X, i.position.Y] = (int)Map.Element.Item;
+            }
             foreach (Enemy e in enemyList)
             {
                 mapArray[e.position.X, e.position.Y] = (int)Map.Element.Enemy;
@@ -689,15 +709,14 @@ namespace Roguelike
                     Vector2 minimapPos = new Vector2(controller.camera.position.X * tileSize + ix * tileSize * minimapScale / controller.camera.scale, controller.camera.position.Y * tileSize + iy * tileSize * minimapScale / controller.camera.scale);
                     minimapPos.X += (controller.graphics.PreferredBackBufferWidth - floorSize * tileSize * minimapScale) / controller.camera.scale;
 
-                    
                     //minimap
                     spriteBatch.Draw(ContentManager.tFloor, minimapPos, null, Color.White, 0, Vector2.Zero, minimapScale / controller.camera.scale, SpriteEffects.None, 10);
 
                     spriteBatch.Draw(ContentManager.tFloor, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.01f);
 
-                    if (minimapSightArray[ix, iy] == 1)
+                    if (minimapSightArray[ix, iy] == 1 && controller.showFog)
                     {
-                        spriteBatch.Draw(ContentManager.tHealthBar, minimapPos, null, Color.Black, 0, Vector2.Zero, minimapScale * tileSize / controller.camera.scale, SpriteEffects.None, 15f);
+                        spriteBatch.Draw(ContentManager.tFog, minimapPos, null, Color.Black, 0, Vector2.Zero, minimapScale * tileSize / controller.camera.scale, SpriteEffects.None, 15f);
                     }
                     //////////
                     switch (mapArray[ix, iy])
@@ -712,7 +731,12 @@ namespace Roguelike
                             }
                         case (int)Element.Player:
                             {
-                                spriteBatch.Draw(ContentManager.tHealthBar, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, new Vector2(tileSize * (controller.player.health / controller.player.maxHealth), tileSize / 10), SpriteEffects.None, 0.97f);
+                                int num = (int)Math.Round(controller.player.health * ContentManager.tHealthBar.Width / controller.player.maxHealth);
+
+                                //spriteBatch.Draw(ContentManager.tHealthBar, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, new Vector2(tileSize * (controller.player.health / controller.player.maxHealth), tileSize / 10), SpriteEffects.None, 0.97f);
+
+                                spriteBatch.Draw(ContentManager.tHealthBar, new Vector2(ix * tileSize, iy * tileSize), new Rectangle(num, 0, 1, 1), Color.White, 0, Vector2.Zero, new Vector2(tileSize * (controller.player.health / controller.player.maxHealth), tileSize / 10), SpriteEffects.None, 0.97f);
+
                                 spriteBatch.Draw(ContentManager.tPlayer, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.1f);
                                 //minimap
                                 spriteBatch.Draw(ContentManager.tPlayer, minimapPos, null, Color.White, 0, Vector2.Zero, minimapScale / controller.camera.scale, SpriteEffects.None, 11);
@@ -729,7 +753,7 @@ namespace Roguelike
                             {
                                 foreach (Item it in itemList)
                                 {
-                                    if (it.position == new Point(ix, iy) && sightArray[ix,iy] == 0)
+                                    if (it.position == new Point(ix, iy) && (sightArray[ix, iy] == 0 || !controller.showFog))
                                     {
                                         spriteBatch.Draw(it.texture, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.1f);
                                         //minimap
@@ -756,9 +780,12 @@ namespace Roguelike
                             {
                                 foreach (Enemy e in enemyList)
                                 {
-                                    if (e.position == new Point(ix, iy) && sightArray[ix, iy] == 0)
+                                    if (e.position == new Point(ix, iy) && (sightArray[ix, iy] == 0 || !controller.showFog))
                                     {
-                                        spriteBatch.Draw(ContentManager.tHealthBar, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, new Vector2(tileSize * (e.health / e.maxHealth), tileSize / 10), SpriteEffects.None, 0.97f);
+                                        int num = (int)Math.Round(e.health * ContentManager.tHealthBar.Width / e.maxHealth);
+
+                                        //spriteBatch.Draw(ContentManager.tHealthBar, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, new Vector2(tileSize * (e.health / e.maxHealth), tileSize / 10), SpriteEffects.None, 0.97f);
+                                        spriteBatch.Draw(ContentManager.tHealthBar, new Vector2(ix * tileSize, iy * tileSize), new Rectangle(num, 0, 1, 1), Color.White, 0, Vector2.Zero, new Vector2(tileSize * (e.health / e.maxHealth), tileSize / 10), SpriteEffects.None, 0.97f);
                                         spriteBatch.Draw(e.texture, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.1f);
                                         //minimap
                                         spriteBatch.Draw(e.texture, minimapPos, null, Color.White, 0, Vector2.Zero, minimapScale / controller.camera.scale, SpriteEffects.None, 11);
@@ -778,34 +805,44 @@ namespace Roguelike
             */
 
             //FOG
-            
-            for (int ix = 0; ix < sightArray.GetLength(0); ix++)
+            if (controller.showFog)
             {
-                for (int iy = 0; iy < sightArray.GetLength(1); iy++)
+                for (int ix = 0; ix < sightArray.GetLength(0); ix++)
                 {
-                    if (sightArray[ix, iy] == 1 && minimapSightArray[ix, iy] == 1)
+                    for (int iy = 0; iy < sightArray.GetLength(1); iy++)
                     {
-                        spriteBatch.Draw(ContentManager.tHealthBar, new Vector2(ix * tileSize, iy * tileSize), null, Color.Gray, 0, Vector2.Zero, new Vector2(tileSize, tileSize), SpriteEffects.None, 0.99f);
-                    }
-                    else if (sightArray[ix, iy] == 0 && minimapSightArray[ix, iy] == 0)
-                    {
-                        float distance = (new Vector2(ix, iy) - new Vector2(controller.player.position.X, controller.player.position.Y)).Length();
+                        if (sightArray[ix, iy] == 1 && minimapSightArray[ix, iy] == 1)
+                        {
+                            spriteBatch.Draw(ContentManager.tFog, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, new Vector2(tileSize, tileSize), SpriteEffects.None, 0.99f);
+                        }
+                        else if (sightArray[ix, iy] == 0 && minimapSightArray[ix, iy] == 0)
+                        {
+                            float distance = (new Vector2(ix, iy) - new Vector2(controller.player.position.X, controller.player.position.Y)).Length();
+                            float scale = FOGINTENSITY * distance;
+                            if (scale > 1 - FOGINTENSITY)
+                            {
+                                scale = 1 - FOGINTENSITY;
+                            }
 
-                        spriteBatch.Draw(ContentManager.tHealthBar, new Vector2(ix * tileSize, iy * tileSize), null, Color.Gray * FOGINTENSITY * distance, 0, Vector2.Zero, new Vector2(tileSize, tileSize), SpriteEffects.None, 0.99f);
-                    }
-                    else if (sightArray[ix, iy] == 1 && minimapSightArray[ix, iy] == 0)
-                    {
-                        float distance = (new Vector2(ix, iy) - new Vector2(controller.player.position.X, controller.player.position.Y)).Length();
-                        spriteBatch.Draw(ContentManager.tHealthBar, new Vector2(ix * tileSize, iy * tileSize), null, Color.Gray * (1 - FOGINTENSITY), 0, Vector2.Zero, new Vector2(tileSize, tileSize), SpriteEffects.None, 0.99f);
+                            spriteBatch.Draw(ContentManager.tFog, new Vector2(ix * tileSize, iy * tileSize), null, Color.White * scale, 0, Vector2.Zero, new Vector2(tileSize, tileSize), SpriteEffects.None, 0.99f);
+                        }
+                        else if (sightArray[ix, iy] == 1 && minimapSightArray[ix, iy] == 0)
+                        {
+                            float distance = (new Vector2(ix, iy) - new Vector2(controller.player.position.X, controller.player.position.Y)).Length();
+                            spriteBatch.Draw(ContentManager.tFog, new Vector2(ix * tileSize, iy * tileSize), null, Color.White * (1 - FOGINTENSITY), 0, Vector2.Zero, new Vector2(tileSize, tileSize), SpriteEffects.None, 0.99f);
+                        }
                     }
                 }
             }
-            spriteBatch.DrawString(ContentManager.font, "HEALTH: " + controller.player.health + "/" + controller.player.maxHealth + "\nLEVEL: " + controller.level + "\nENEMY COUNT: " + enemyList.Count + "\nE: Interact\nF: Use potion", new Vector2(controller.camera.position.X * tileSize, controller.camera.position.Y * tileSize), Color.Red, 0, Vector2.Zero, 1 / controller.camera.scale, SpriteEffects.None, 100);
+            spriteBatch.DrawString(ContentManager.font, "Health: " + controller.player.health + "/" + controller.player.maxHealth + "\nLevel: " + controller.level + "\nEnemy count: " + enemyList.Count + "\nI: Toggle inventory\nQ: Toggle fog\nSPACE: Next level\nMouse wheel: Zooooom", new Vector2(controller.camera.position.X * tileSize, controller.camera.position.Y * tileSize), Color.Red, 0, Vector2.Zero, 1 / controller.camera.scale, SpriteEffects.None, 100);
+
+            spriteBatch.DrawString(ContentManager.font, message, new Vector2(controller.camera.position.X * tileSize + 300 / controller.camera.scale, controller.camera.position.Y * tileSize), Color.Red, 0, Vector2.Zero, 1 / controller.camera.scale, SpriteEffects.None, 100);
+
             if (controller.showInv)
             {
                 for (int i = 0; i < controller.inventory.Count; i++)
                 {
-                    spriteBatch.DrawString(ContentManager.font, (i + 1) + ") " + controller.inventory[i].ToString(), new Vector2(controller.camera.position.X * tileSize, controller.camera.position.Y * tileSize + i * tileSize / 1.4f / controller.camera.scale + 130 / controller.camera.scale), Color.DarkGoldenrod, 0, Vector2.Zero, 1 / controller.camera.scale, SpriteEffects.None, 100);
+                    spriteBatch.DrawString(ContentManager.font, (i + 1) + ") " + controller.inventory[i].ToString(), new Vector2(controller.camera.position.X * tileSize, controller.camera.position.Y * tileSize + i * tileSize / 1.4f / controller.camera.scale + 180 / controller.camera.scale), Color.DarkGoldenrod, 0, Vector2.Zero, 1 / controller.camera.scale, SpriteEffects.None, 100);
                 }
             }
         }

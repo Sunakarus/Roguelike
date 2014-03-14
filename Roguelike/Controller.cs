@@ -15,6 +15,7 @@ namespace Roguelike
         public int level = 1;
 
         public bool showInv = true;
+        public bool showFog = true;
 
         public const int LEVELCAP = 30;
         public const int STARTMAPSIZE = 15;

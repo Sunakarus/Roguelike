@@ -8,16 +8,18 @@ namespace Roguelike
         public Texture2D texture;
         public Point position;
         public Controller controller;
+        public Map.Element baseElem; //what is on the ground under the item
 
         public enum ItemType { Potion = 0, PotionRed = 1 }
 
         public ItemType itemType;
 
-        public Item(Controller controller, Point position, ItemType itemType)
+        public Item(Controller controller, Point position, ItemType itemType, Map.Element baseElem)
         {
             this.controller = controller;
             this.position = position;
             this.itemType = itemType;
+            this.baseElem = baseElem;
 
             switch (itemType)
             {
@@ -42,6 +44,7 @@ namespace Roguelike
             {
                 case ItemType.Potion:
                     return "A vial of potion";
+
                 case ItemType.PotionRed:
                     return "A vial of blood";
 

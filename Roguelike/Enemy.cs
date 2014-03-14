@@ -27,7 +27,6 @@ namespace Roguelike
             this.position = position;
             this.controller = controller;
 
-
             switch (enemyType)
             {
                 case EnemyType.Skeleton:

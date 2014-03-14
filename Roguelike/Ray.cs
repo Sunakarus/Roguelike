@@ -1,17 +1,14 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Roguelike
 {
-    class Ray
+    internal class Ray
     {
         public Point origin;
         public Vector2 direction;
-        Controller controller;
-        int viewDistance;
+        private Controller controller;
+        private int viewDistance;
 
         public Ray(Controller controller, Point origin, Vector2 direction, int viewDistance)
         {
@@ -39,9 +36,9 @@ namespace Roguelike
                 {
                     break;
                 }
-                if (controller.map.GetElementAtPos(pos) != (int)Map.Element.Door && controller.map.GetElementAtPos(pos) !=(int)Map.Element.Wall)
+                if (controller.map.GetElementAtPos(pos) != (int)Map.Element.Door && controller.map.GetElementAtPos(pos) != (int)Map.Element.Wall)
                 {
-                    sightArray[pos.X, pos.Y] = 0 + counter/10;
+                    sightArray[pos.X, pos.Y] = 0 + counter / 10;
                 }
                 else
                 {

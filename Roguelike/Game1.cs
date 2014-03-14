@@ -51,10 +51,11 @@ namespace Roguelike
             ContentManager.tDoorOpen = Content.Load<Texture2D>("Sprites/door_open");
             ContentManager.tSkeleton = Content.Load<Texture2D>("Sprites/skeleton");
             ContentManager.font = Content.Load<SpriteFont>("Fonts/tahoma");
-            ContentManager.tHealthBar = Content.Load<Texture2D>("Sprites/health");
+            ContentManager.tFog = Content.Load<Texture2D>("Sprites/fog");
             ContentManager.tStairs = Content.Load<Texture2D>("Sprites/stairs");
             ContentManager.tBat = Content.Load<Texture2D>("Sprites/bat");
             ContentManager.tFloor = Content.Load<Texture2D>("Sprites/floor");
+            ContentManager.tHealthBar = Content.Load<Texture2D>("Sprites/healthbar");
 
             gamePlay = new Gameplay(graphics);
         }
