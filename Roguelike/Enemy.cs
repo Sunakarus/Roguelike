@@ -16,6 +16,8 @@ namespace Roguelike
         public bool asleep = true;
         public int viewDistance;
 
+        public bool isSeen = false;
+
         public Ray rayToPlayer;
 
         public enum EnemyType { Skeleton = 0, Bat = 1 }
@@ -81,13 +83,34 @@ namespace Roguelike
             }
             foreach (Ray r in rayList)
             {
-                if (r.ClearView())
+                if (r.CanSee(controller.player.position))
                 {
                     return true;
                 }
             }
 
             return false;
+        }
+
+        public void Update()
+        {
+            if (!asleep)
+            {
+                Vector2 playerPos = new Vector2(controller.player.position.X, controller.player.position.Y);
+                Vector2 myPos = new Vector2(position.X, position.Y);
+                if ((playerPos - myPos).Length() <= viewDistance * 2)
+                {
+                    Move();
+                }
+                else
+                {
+                    asleep = true;
+                }
+            }
+            else if (CanSeePlayer())
+            {
+                asleep = false;
+            }
         }
 
         public void Move()

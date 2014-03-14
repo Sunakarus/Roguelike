@@ -1,7 +1,6 @@
 C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Release\Content\Sprites\potion_red.png
 C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Release\Content\Sprites\bat.png
 C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Release\Content\Sprites\floor.png
-C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Release\Content\Sprites\health.png
 C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Release\Content\Sprites\skeleton.png
 C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Release\Content\Sprites\door_open.png
 C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Release\Content\Sprites\door.png
@@ -19,3 +18,6 @@ C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\R
 C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Release\Tao.Sdl.dll
 C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\obj\x86\Release\Roguelike.exe
 C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\obj\x86\Release\Roguelike.pdb
+C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Release\Content\Sprites\healthbar.png
+C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Release\Content\Sprites\fog.png
+C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\obj\x86\Release\Roguelike.csprojResolveAssemblyReference.cache

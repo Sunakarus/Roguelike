@@ -469,7 +469,6 @@ namespace Roguelike
                     if (r.ContainsPoint(controller.player.position))
                     {
                         posInBig = true;
-                        //Console.WriteLine(r.ToString());
                         break;
                     }
                 }
@@ -599,6 +598,18 @@ namespace Roguelike
             {
                 r.LineSight(ref sightArray);
             }
+            foreach (Enemy e in enemyList)
+            {
+                e.isSeen = false;
+                foreach (Ray r in rayList)
+                {
+                    if (r.CanSee(e.position))
+                    {
+                        e.isSeen = true;
+                        break;
+                    }
+                }
+            }
         }
 
         public void Update()
@@ -643,13 +654,9 @@ namespace Roguelike
                         enemyList.RemoveAt(i);
                         continue;
                     }
-                    if (!enemyList[i].asleep)
+                    else
                     {
-                        enemyList[i].Move();
-                    }
-                    else if (enemyList[i].CanSeePlayer())
-                    {
-                        enemyList[i].asleep = false;
+                        enemyList[i].Update();
                     }
                 }
                 if (controller.player.health <= 0)
@@ -670,7 +677,14 @@ namespace Roguelike
                         break;
 
                     case (int)Element.Item:
-                        message = "Press E to pick up";
+                        if (controller.inventory.Count >= Controller.INVENTORYSIZE)
+                        {
+                            message = "Inventory full";
+                        }
+                        else
+                        {
+                            message = "Press E to pick up";
+                        }
                         break;
 
                     default:
@@ -719,6 +733,7 @@ namespace Roguelike
                         spriteBatch.Draw(ContentManager.tFog, minimapPos, null, Color.Black, 0, Vector2.Zero, minimapScale * tileSize / controller.camera.scale, SpriteEffects.None, 15f);
                     }
                     //////////
+
                     switch (mapArray[ix, iy])
                     {
                         case (int)Element.Wall:
@@ -834,7 +849,7 @@ namespace Roguelike
                     }
                 }
             }
-            spriteBatch.DrawString(ContentManager.font, "Health: " + controller.player.health + "/" + controller.player.maxHealth + "\nLevel: " + controller.level + "\nEnemy count: " + enemyList.Count + "\nI: Toggle inventory\nQ: Toggle fog\nSPACE: Next level\nMouse wheel: Zooooom", new Vector2(controller.camera.position.X * tileSize, controller.camera.position.Y * tileSize), Color.Red, 0, Vector2.Zero, 1 / controller.camera.scale, SpriteEffects.None, 100);
+            spriteBatch.DrawString(ContentManager.font, "Health: " + controller.player.health + "/" + controller.player.maxHealth + "\nLevel: " + controller.level + "\nEnemy count: " + enemyList.Count + "\nF: Heal\nI: Toggle inventory\nQ: Toggle fog\nSPACE: Skip to next level\nMouse wheel: Zooooom", new Vector2(controller.camera.position.X * tileSize, controller.camera.position.Y * tileSize), Color.Red, 0, Vector2.Zero, 1 / controller.camera.scale, SpriteEffects.None, 100);
 
             spriteBatch.DrawString(ContentManager.font, message, new Vector2(controller.camera.position.X * tileSize + 300 / controller.camera.scale, controller.camera.position.Y * tileSize), Color.Red, 0, Vector2.Zero, 1 / controller.camera.scale, SpriteEffects.None, 100);
 
@@ -842,7 +857,9 @@ namespace Roguelike
             {
                 for (int i = 0; i < controller.inventory.Count; i++)
                 {
-                    spriteBatch.DrawString(ContentManager.font, (i + 1) + ") " + controller.inventory[i].ToString(), new Vector2(controller.camera.position.X * tileSize, controller.camera.position.Y * tileSize + i * tileSize / 1.4f / controller.camera.scale + 180 / controller.camera.scale), Color.DarkGoldenrod, 0, Vector2.Zero, 1 / controller.camera.scale, SpriteEffects.None, 100);
+                    int inventoryY = 190;
+
+                    spriteBatch.DrawString(ContentManager.font, (i + 1) + ") " + controller.inventory[i].ToString(), new Vector2(controller.camera.position.X * tileSize, controller.camera.position.Y * tileSize + i * tileSize / 1.4f / controller.camera.scale + inventoryY / controller.camera.scale), Color.DarkGoldenrod, 0, Vector2.Zero, 1 / controller.camera.scale, SpriteEffects.None, 100);
                 }
             }
         }

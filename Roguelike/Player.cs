@@ -11,10 +11,10 @@ namespace Roguelike
         public bool stepped = false;
         public float health, maxHealth = 15, damage = 5;
 
-        public int viewDistance = 8;
+        public int viewDistance = 6;
 
-        float delay;
-        float maxDelay = 30;
+        private float delay;
+        private float maxDelay = 30;
 
         public enum Movement { Left, Up, Right, Down }
 
@@ -47,16 +47,16 @@ namespace Roguelike
             {
                 delay = maxDelay;
             }
-            foreach(Enemy e in controller.map.enemyList)
+            foreach (Enemy e in controller.map.enemyList)
             {
-                if (!e.asleep)
+                if (e.isSeen)
                 {
                     delay = maxDelay;
                     break;
                 }
             }
 
-            if (state.IsKeyDown(Keys.A) && prevState.IsKeyUp(Keys.A) || state.IsKeyDown(Keys.Left) && prevState.IsKeyUp(Keys.Left) || ((state.IsKeyDown(Keys.A) || state.IsKeyDown(Keys.Left)) && delay <=0))
+            if (state.IsKeyDown(Keys.A) && prevState.IsKeyUp(Keys.A) || state.IsKeyDown(Keys.Left) && prevState.IsKeyUp(Keys.Left) || ((state.IsKeyDown(Keys.A) || state.IsKeyDown(Keys.Left)) && delay <= 0))
             {
                 Move(Movement.Left);
             }
