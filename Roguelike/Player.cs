@@ -14,6 +14,8 @@ namespace Roguelike
         public int experience = 0, maxExperience = 15;
 
         public int viewDistance = 6;
+        public int chosenItem = 0;
+
 
         private float delay;
         private float maxDelay = 30;
@@ -31,6 +33,7 @@ namespace Roguelike
 
         public void LevelUp()
         {
+            playerLevel++;
             int addHealth = controller.random.Next(3) + 1;
 
             experience = 0;
@@ -117,42 +120,52 @@ namespace Roguelike
                     }
                 }
             }
-
-            //healing
-            //ADDITEM
+            //Choosing items
+            if (controller.showInv)
+            {
+                if (state.IsKeyDown(Keys.OemComma) && prevState.IsKeyUp(Keys.OemComma))
+                {
+                    if (chosenItem > 0)
+                    {
+                        chosenItem--;
+                    }
+                    else
+                    {
+                        chosenItem = controller.inventory.Count-1;
+                    }
+                }
+                if (state.IsKeyDown(Keys.OemPeriod) && prevState.IsKeyUp(Keys.OemPeriod))
+                    if (chosenItem < controller.inventory.Count - 1)
+                    {
+                        chosenItem++;
+                    }
+                    else
+                    {
+                        chosenItem = 0;
+                    }
+            }
+            //Using item
             if (state.IsKeyDown(Keys.F) && prevState.IsKeyUp(Keys.F) && !stepped)
             {
                 if (controller.inventory.Count > 0)
                 {
-                    controller.inventory[0].Use();
-                    controller.inventory.RemoveAt(0);
+                    controller.inventory[chosenItem].Use();
+                    controller.inventory.RemoveAt(chosenItem);
+                    if (chosenItem!=0)
+                    {
+                        chosenItem--;
+                    }
                     stepped = true;
                 }
-                //TODO: choosing item
-
-                //for (int i = 0; i < controller.inventory.Count; i++)
-                //{
-                // break;
-                /* if (controller.inventory[i].itemType == Item.ItemType.Potion)
-                 {
-                     controller.inventory.RemoveAt(i);
-                     health += (int)maxHealth / 2;
-                     stepped = true;
-                     break;
-                 }
-                 else if (controller.inventory[i].itemType == Item.ItemType.PotionRed)
-                 {
-                     controller.inventory.RemoveAt(i);
-                     damage += 1;
-                     stepped = true;
-                     break;
-                 }*/
-                //  }
             }
+
+
+            
 
             if (state.IsKeyDown(Keys.I) && prevState.IsKeyUp(Keys.I))
             {
                 controller.showInv = !controller.showInv;
+                chosenItem = 0;
             }
 
             if (state.IsKeyDown(Keys.Q) && prevState.IsKeyUp(Keys.Q))

@@ -46,7 +46,7 @@ namespace Roguelike
         //ADDITEM
         public void Use()
         {
-            switch (itemType)
+            switch (itemType) 
             {
                 case ItemType.Potion:
                     controller.player.health += (int)(controller.player.maxHealth / 2);

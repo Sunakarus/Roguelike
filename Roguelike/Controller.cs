@@ -17,7 +17,7 @@ namespace Roguelike
         public bool showInv = true;
         public bool showFog = true;
 
-        public static readonly int LEVELCAP = 30;
+        public static readonly int LEVELCAP = 25;
         public static readonly int STARTMAPSIZE = 15;
         public static readonly int INVENTORYSIZE = 8;
 
