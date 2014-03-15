@@ -53,6 +53,10 @@ namespace Roguelike
                     }
             }
             health = maxHealth;
+            if (CanSeePlayer())
+            {
+                asleep = false;
+            }
         }
 
         public bool CanSeePlayer()

@@ -16,6 +16,7 @@ namespace Roguelike
         public int viewDistance = 6;
         public int chosenItem = 0;
 
+        public Item equipped;
 
         private float delay;
         private float maxDelay = 30;
@@ -58,7 +59,10 @@ namespace Roguelike
                 (state.IsKeyDown(Keys.Up) && prevState.IsKeyDown(Keys.Up)) ||
                 (state.IsKeyDown(Keys.Down) && prevState.IsKeyDown(Keys.Down)))
             {
-                delay--;
+                if (delay > 0)
+                {
+                    delay--;
+                }
             }
             else
             {
@@ -123,7 +127,7 @@ namespace Roguelike
             //Choosing items
             if (controller.showInv)
             {
-                if (state.IsKeyDown(Keys.OemComma) && prevState.IsKeyUp(Keys.OemComma))
+                if (state.IsKeyDown(Keys.Z) && prevState.IsKeyUp(Keys.Z))
                 {
                     if (chosenItem > 0)
                     {
@@ -131,10 +135,10 @@ namespace Roguelike
                     }
                     else
                     {
-                        chosenItem = controller.inventory.Count-1;
+                        chosenItem = controller.inventory.Count - 1;
                     }
                 }
-                if (state.IsKeyDown(Keys.OemPeriod) && prevState.IsKeyUp(Keys.OemPeriod))
+                if (state.IsKeyDown(Keys.C) && prevState.IsKeyUp(Keys.C))
                     if (chosenItem < controller.inventory.Count - 1)
                     {
                         chosenItem++;
@@ -145,27 +149,46 @@ namespace Roguelike
                     }
             }
             //Using item
-            if (state.IsKeyDown(Keys.F) && prevState.IsKeyUp(Keys.F) && !stepped)
+            if (state.IsKeyDown(Keys.F) && prevState.IsKeyUp(Keys.F) && !stepped && controller.showInv)
             {
                 if (controller.inventory.Count > 0)
                 {
-                    controller.inventory[chosenItem].Use();
-                    controller.inventory.RemoveAt(chosenItem);
-                    if (chosenItem!=0)
+                    if (controller.inventory[chosenItem].itemCat == Item.ItemCat.Consumable)
                     {
-                        chosenItem--;
+                        controller.inventory[chosenItem].Use();
+                        controller.inventory.RemoveAt(chosenItem);
+                        if (chosenItem != 0)
+                        {
+                            chosenItem--;
+                        }
+                    }
+                    else if (controller.inventory[chosenItem].itemCat == Item.ItemCat.Equipment)
+                    {
+                        if (equipped != controller.inventory[chosenItem])
+                        {
+                            if (equipped != null)
+                            {
+                                equipped.Unequip();
+                            }
+                            equipped = controller.inventory[chosenItem];
+                            equipped.Equip();
+
+                            //TODO: make equipping more than one item possible
+                        }
+                        else
+                        {
+                            equipped.Unequip();
+                            equipped = null;
+                        }
                     }
                     stepped = true;
                 }
             }
 
-
-            
-
             if (state.IsKeyDown(Keys.I) && prevState.IsKeyUp(Keys.I))
             {
                 controller.showInv = !controller.showInv;
-                chosenItem = 0;
+                //chosenItem = 0;
             }
 
             if (state.IsKeyDown(Keys.Q) && prevState.IsKeyUp(Keys.Q))
@@ -228,6 +251,10 @@ namespace Roguelike
                         controller.map.enemyList[i].health -= controller.player.damage;
                     }
                 }
+            }
+            else
+            {
+                return;
             }
             stepped = true;
 

@@ -746,11 +746,11 @@ namespace Roguelike
 
                     spriteBatch.Draw(ContentManager.tFloor, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.01f);
 
+                    //////////fog logic
                     if (minimapSightArray[ix, iy] == 1 && controller.showFog)
                     {
                         spriteBatch.Draw(ContentManager.tFog, minimapPos, null, Color.Black, 0, Vector2.Zero, minimapScale * tileSize / controller.camera.scale, SpriteEffects.None, 15f);
                     }
-                    //////////
 
                     if (controller.showFog)
                     {
@@ -764,6 +764,7 @@ namespace Roguelike
                         }
                     }
 
+                    /////////
                     switch (mapArray[ix, iy])
                     {
                         case (int)Element.Wall:
@@ -825,12 +826,21 @@ namespace Roguelike
                                 {
                                     if (e.position == new Point(ix, iy) && (sightArray[ix, iy] == 0 || !controller.showFog))
                                     {
-                                            int num = (int)Math.Round(e.health * ContentManager.tHealthBar.Width / e.maxHealth);
-                                            spriteBatch.Draw(ContentManager.tHealthBar, new Vector2(ix * tileSize, iy * tileSize), new Rectangle(num, 0, 1, 1), Color.White, 0, Vector2.Zero, new Vector2(tileSize * (e.health / e.maxHealth), tileSize / 10), SpriteEffects.None, 0.97f);
-                                            spriteBatch.Draw(e.texture, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.1f);
-                                            //minimap
-                                            spriteBatch.Draw(e.texture, minimapPos, null, Color.White, 0, Vector2.Zero, minimapScale / controller.camera.scale, SpriteEffects.None, 11);
-                                            break;
+                                        Color color;
+                                        if (e.asleep)
+                                        {
+                                            color = Color.White;
+                                        }
+                                        else
+                                        {
+                                            color = Color.LightSalmon;
+                                        }
+                                        int num = (int)Math.Round(e.health * ContentManager.tHealthBar.Width / e.maxHealth);
+                                        spriteBatch.Draw(ContentManager.tHealthBar, new Vector2(ix * tileSize, iy * tileSize), new Rectangle(num, 0, 1, 1), Color.White, 0, Vector2.Zero, new Vector2(tileSize * (e.health / e.maxHealth), tileSize / 10), SpriteEffects.None, 0.97f);
+                                        spriteBatch.Draw(e.texture, new Vector2(ix * tileSize, iy * tileSize), null, color, 0, Vector2.Zero, 1, SpriteEffects.None, 0.1f);
+                                        //minimap
+                                        spriteBatch.Draw(e.texture, minimapPos, null, color, 0, Vector2.Zero, minimapScale / controller.camera.scale, SpriteEffects.None, 11);
+                                        break;
                                     }
                                 }
                                 break;
@@ -881,10 +891,13 @@ namespace Roguelike
 
             if (controller.showInv)
             {
+                string equip = "";
+                int inventoryY = 190;
+                Color fontColor;
+                spriteBatch.DrawString(ContentManager.font, "Z,C - scroll\nF: Use", new Vector2(controller.camera.position.X * tileSize, controller.camera.position.Y * tileSize + (inventoryY - tileSize * 1.5f) / controller.camera.scale), Color.Gold, 0, Vector2.Zero, 1 / controller.camera.scale, SpriteEffects.None, 100);
+
                 for (int i = 0; i < controller.inventory.Count; i++)
                 {
-                    int inventoryY = 190;
-                    Color fontColor;
                     if (player.chosenItem != i)
                     {
                         fontColor = Color.DarkGoldenrod;
@@ -894,7 +907,16 @@ namespace Roguelike
                         fontColor = Color.Yellow;
                     }
 
-                    spriteBatch.DrawString(ContentManager.font, (i + 1) + ") " + controller.inventory[i].ToString(), new Vector2(controller.camera.position.X * tileSize, controller.camera.position.Y * tileSize + i * tileSize / 1.4f / controller.camera.scale + inventoryY / controller.camera.scale), fontColor, 0, Vector2.Zero, 1 / controller.camera.scale, SpriteEffects.None, 100);
+                    if (player.equipped == controller.inventory[i])
+                    {
+                        equip = " - E";
+                    }
+                    else
+                    {
+                        equip = "";
+                    }
+
+                    spriteBatch.DrawString(ContentManager.font, (i + 1) + ") " + controller.inventory[i].ToString() + equip, new Vector2(controller.camera.position.X * tileSize, controller.camera.position.Y * tileSize + i * tileSize / 1.4f / controller.camera.scale + inventoryY / controller.camera.scale), fontColor, 0, Vector2.Zero, 1 / controller.camera.scale, SpriteEffects.None, 100);
                 }
             }
         }

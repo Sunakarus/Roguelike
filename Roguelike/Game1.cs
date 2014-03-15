@@ -56,6 +56,7 @@ namespace Roguelike
             ContentManager.tBat = Content.Load<Texture2D>("Sprites/bat");
             ContentManager.tFloor = Content.Load<Texture2D>("Sprites/floor");
             ContentManager.tHealthBar = Content.Load<Texture2D>("Sprites/healthbar");
+            ContentManager.tBigSword = Content.Load<Texture2D>("Sprites/bigsword");
 
             gamePlay = new Gameplay(graphics);
         }
