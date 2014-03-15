@@ -10,7 +10,12 @@ namespace Roguelike
         public Controller controller;
         public Map.Element baseElem; //what is on the ground under the item
 
-        public enum ItemType { Potion = 0, PotionRed = 1 }
+        public enum ItemType : int { Potion, PotionRed } //ADDITEM
+
+        //TODO
+        /*public enum Rarity : int { Common, Uncommon, Rare }
+         public enum CommonItems :int { Potion }
+         public enum UncommonItems : int { PotionRed }*/
 
         public ItemType itemType;
 
@@ -21,7 +26,7 @@ namespace Roguelike
             this.itemType = itemType;
             this.baseElem = baseElem;
 
-            switch (itemType)
+            switch (itemType)//ADDITEM
             {
                 case ItemType.Potion:
                     {
@@ -38,9 +43,27 @@ namespace Roguelike
             }
         }
 
-        public override string ToString()
+        //ADDITEM
+        public void Use()
         {
             switch (itemType)
+            {
+                case ItemType.Potion:
+                    controller.player.health += (int)(controller.player.maxHealth / 2);
+                    break;
+
+                case ItemType.PotionRed:
+                    controller.player.damage += 1;
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        public override string ToString()
+        {
+            switch (itemType)//ADDITEM
             {
                 case ItemType.Potion:
                     return "A vial of potion";

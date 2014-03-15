@@ -13,7 +13,7 @@ namespace Roguelike
         public float scale, prevScale;
         private int maxTilesX, maxTilesY;
 
-        private const float MARGINSIZECONST = 2.5f; //must be larger than 2.0 to prevent jittering
+        private static readonly float MARGINSIZECONST = 2.5f; //must be larger than 2.0 to prevent jittering
 
         public Camera(Controller controller, Point position, int tileSize)
         {

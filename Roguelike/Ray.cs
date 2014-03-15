@@ -49,7 +49,7 @@ namespace Roguelike
             return false;
         }
 
-        public void LineSight(ref int[,] sightArray)
+        public void CreateSightArray(ref int[,] sightArray)
         {
             int counter = -1;
             do

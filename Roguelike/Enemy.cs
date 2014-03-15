@@ -13,6 +13,8 @@ namespace Roguelike
         public float health;
         public float maxHealth;
         public float damage;
+        public int expValue;
+
         public bool asleep = true;
         public int viewDistance;
 
@@ -20,7 +22,7 @@ namespace Roguelike
 
         public Ray rayToPlayer;
 
-        public enum EnemyType { Skeleton = 0, Bat = 1 }
+        public enum EnemyType : int { Skeleton, Bat } //ADDENEMY
 
         public enum Movement { Left, Up, Right, Down }
 
@@ -29,7 +31,7 @@ namespace Roguelike
             this.position = position;
             this.controller = controller;
 
-            switch (enemyType)
+            switch (enemyType) //ADDENEMY
             {
                 case EnemyType.Skeleton:
                     {
@@ -37,6 +39,7 @@ namespace Roguelike
                         damage = 2;
                         maxHealth = 10;
                         viewDistance = 5;
+                        expValue = 5;
                         break;
                     }
                 case EnemyType.Bat:
@@ -45,6 +48,7 @@ namespace Roguelike
                         damage = 1;
                         maxHealth = 8;
                         viewDistance = 8;
+                        expValue = 3;
                         break;
                     }
             }
@@ -98,6 +102,7 @@ namespace Roguelike
             {
                 Vector2 playerPos = new Vector2(controller.player.position.X, controller.player.position.Y);
                 Vector2 myPos = new Vector2(position.X, position.Y);
+
                 if ((playerPos - myPos).Length() <= viewDistance * 2)
                 {
                     Move();
@@ -111,6 +116,44 @@ namespace Roguelike
             {
                 asleep = false;
             }
+            else
+            {
+                Roam();
+            }
+        }
+
+        public void Roam()
+        {
+            List<Point> possibleMoves = new List<Point>();
+            possibleMoves.Add(new Point(position.X - 1, position.Y));
+            possibleMoves.Add(new Point(position.X + 1, position.Y));
+            possibleMoves.Add(new Point(position.X, position.Y - 1));
+            possibleMoves.Add(new Point(position.X, position.Y + 1));
+
+            for (int i = possibleMoves.Count - 1; i > -1; i--)
+            {
+                if (controller.map.OutOfBounds(possibleMoves[i]) || !controller.map.IsWalkable(possibleMoves[i]))
+                {
+                    possibleMoves.RemoveAt(i);
+                    continue;
+                }
+                foreach (Enemy e in controller.map.enemyList)
+                {
+                    if (possibleMoves[i] == e.position)
+                    {
+                        possibleMoves.RemoveAt(i);
+                        break;
+                    }
+                }
+            }
+
+            if (possibleMoves.Count == 0)
+            {
+                return;
+            }
+
+            int randMove = controller.random.Next(possibleMoves.Count);
+            position = possibleMoves[randMove];
         }
 
         public void Move()
