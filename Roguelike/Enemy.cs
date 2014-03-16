@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Collections.Generic;
 
 namespace Roguelike
@@ -39,7 +40,7 @@ namespace Roguelike
                         texture = ContentManager.tSkeleton;
                         damage = 2;
                         maxHealth = 10;
-                        viewDistance = 5;
+                        viewDistance = 4;
                         expValue = 5;
                         dropRate = 8;
                         break;
@@ -49,7 +50,7 @@ namespace Roguelike
                         texture = ContentManager.tBat;
                         damage = 1;
                         maxHealth = 8;
-                        viewDistance = 8;
+                        viewDistance = 6;
                         dropRate = 6;
                         expValue = 3;
                         break;
@@ -76,6 +77,27 @@ namespace Roguelike
             rayToPlayer = new Ray(controller, position, playerPos - myPos, viewDistance);
 
             List<Ray> rayList = new List<Ray>();
+            List<Point> pointList = new List<Point>();
+            Point tempPoint;
+
+            for (int ix = position.X - viewDistance; ix <= position.X + viewDistance; ix++)
+            {
+                for (int iy = position.Y - viewDistance; iy <= position.Y + viewDistance; iy++)
+                {
+                    tempPoint = new Point(ix, iy);
+                    //((x1-x)^2 + (y1-y)^2) < r^2
+                    if (Math.Pow(tempPoint.X - position.X, 2) + Math.Pow(tempPoint.Y - position.Y, 2) < Math.Pow(viewDistance, 2))
+                    {
+                        pointList.Add(tempPoint);
+                    }
+                }
+            }
+            foreach (Point p in pointList)
+            {
+                rayList.Add(new Ray(controller, position, new Vector2(p.X - position.X, p.Y - position.Y), viewDistance));
+            }
+
+            /*
             for (float ix = -1f; ix <= 1; ix += 1f)
             {
                 for (float iy = -1f; iy <= 1; iy += 1f)
@@ -97,7 +119,7 @@ namespace Roguelike
                         rayList.Add(new Ray(controller, new Point(position.X + 1, position.Y + 1), new Vector2(ix, iy), viewDistance));
                     }
                 }
-            }
+            }*/
             foreach (Ray r in rayList)
             {
                 if (r.CanSee(controller.player.position))

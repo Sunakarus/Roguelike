@@ -41,7 +41,7 @@ namespace Roguelike
             playerLevel++;
             int addHealth = controller.random.Next(3) + 1;
 
-            experience = 0;
+            experience -= maxExperience;
             maxExperience += playerLevel * 2;
 
             maxHealth += addHealth;

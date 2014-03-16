@@ -26,6 +26,7 @@ namespace Roguelike
             {
                 counter++;
                 Vector2 newPos = new Vector2(origin.X + direction.X * counter, origin.Y + direction.Y * counter);
+                newPos += new Vector2(0.5f, 0.5f); //centralize
 
                 newPos.X = (int)Math.Floor((float)newPos.X);
                 newPos.Y = (int)Math.Floor((float)newPos.Y);
@@ -56,6 +57,7 @@ namespace Roguelike
             {
                 counter++;
                 Vector2 newPos = new Vector2(origin.X + direction.X * counter, origin.Y + direction.Y * counter);
+                newPos += new Vector2(0.5f, 0.5f);
 
                 newPos.X = (int)Math.Floor((float)newPos.X);
                 newPos.Y = (int)Math.Floor((float)newPos.Y);
