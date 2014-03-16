@@ -18,20 +18,43 @@ namespace Roguelike
         public int damageStat = 0;
         public int defenseStat = 0;
         public int bonusStat;
+        public static readonly int BONUSCHANCE = 3; // chance = 1/BONUSCHANCE
 
         //TODO: Rarity system
-        /*public enum Rarity : int { Common, Uncommon, Rare }
-         public enum CommonItems :int { Potion }
-         public enum UncommonItems : int { PotionRed }*/
+        public enum Rarity : int { Common, Uncommon, Rare }
+
+        public ItemType[] commonArray = { ItemType.Potion }; //ADDITEM
+        public ItemType[] uncommonArray = { ItemType.PotionRed };
+        public ItemType[] rareArray = { ItemType.BigSword, ItemType.Shield };
 
         public ItemType itemType;
 
-        public Item(Controller controller, Point position, ItemType itemType, Map.Element baseElem)
+        public Item(Controller controller, Point position, Map.Element baseElem)
         {
             this.controller = controller;
             this.position = position;
-            this.itemType = itemType;
             this.baseElem = baseElem;
+
+            Rarity rarity = ChooseRarity();
+
+            int random;
+            switch (rarity)
+            {
+                case Rarity.Common:
+                    random = controller.random.Next(commonArray.Length);
+                    itemType = commonArray[random];
+                    break;
+
+                case Rarity.Uncommon:
+                    random = controller.random.Next(uncommonArray.Length);
+                    itemType = uncommonArray[random];
+                    break;
+
+                case Rarity.Rare:
+                    random = controller.random.Next(rareArray.Length);
+                    itemType = rareArray[random];
+                    break;
+            }
 
             switch (itemType)//ADDITEM
             {
@@ -67,16 +90,36 @@ namespace Roguelike
 
             if (itemCat == ItemCat.Equipment)
             {
-                if (damageStat > 0)
+                if (controller.random.Next(BONUSCHANCE) == BONUSCHANCE - 1)
                 {
-                    bonusStat = controller.random.Next(damageStat + 1);
-                    damageStat += bonusStat;
+                    if (damageStat > 0)
+                    {
+                        bonusStat = controller.random.Next(damageStat) + 1;
+                        damageStat += bonusStat;
+                    }
+                    if (defenseStat > 0)
+                    {
+                        bonusStat = controller.random.Next(defenseStat) + 1;
+                        defenseStat += bonusStat;
+                    }
                 }
-                if (defenseStat > 0)
-                {
-                    bonusStat = controller.random.Next(defenseStat + 1);
-                    defenseStat += bonusStat;
-                }
+            }
+        }
+
+        private Rarity ChooseRarity()
+        {
+            int diceRoll = controller.random.Next(1, 101);
+            if (diceRoll > 90)
+            {
+                return Rarity.Rare;
+            }
+            else if (diceRoll > 70)
+            {
+                return Rarity.Uncommon;
+            }
+            else
+            {
+                return Item.Rarity.Common;
             }
         }
 
@@ -87,7 +130,8 @@ namespace Roguelike
             {
                 //CONSUMABLES ONLY
                 case ItemType.Potion:
-                    controller.player.health += (int)(controller.player.maxHealth / 2);
+                    //controller.player.health += (int)(controller.player.maxHealth / 2);
+                    controller.player.health += 5;
                     break;
 
                 case ItemType.PotionRed:

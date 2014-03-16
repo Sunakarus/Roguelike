@@ -500,8 +500,7 @@ namespace Roguelike
                 }
                 if (temp != Point.Zero && temp != player.position && !overlap)
                 {
-                    Type t = typeof(Item.ItemType);
-                    itemList.Add(new Item(controller, temp, (Item.ItemType)controller.random.Next(Enum.GetValues(t).Length), (Map.Element)mapArray[temp.X, temp.Y]));
+                    itemList.Add(new Item(controller, temp, (Map.Element)mapArray[temp.X, temp.Y]));
                     mapArray[temp.X, temp.Y] = (int)Element.Item;
                 }
             }
@@ -660,9 +659,8 @@ namespace Roguelike
                 {
                     if (enemyList[i].health <= 0)
                     {
-                        player.experience += enemyList[i].expValue;
+                        enemyList[i].Death();
                         enemyList.RemoveAt(i);
-
                         continue;
                     }
                     else
@@ -879,17 +877,24 @@ namespace Roguelike
             {
                 string equip = "";
                 int inventoryY = 240;
-                Color fontColor;
+
                 spriteBatch.DrawString(ContentManager.font, "Z,C - scroll\nF: Use\nR: Drop", new Vector2(controller.camera.position.X * tileSize, controller.camera.position.Y * tileSize + (inventoryY - tileSize * 2.2f) / controller.camera.scale), Color.Gold, 0, Vector2.Zero, 1 / controller.camera.scale, SpriteEffects.None, 100);
 
                 for (int i = 0; i < controller.inventory.Count; i++)
                 {
                     equip = "";
-                    if (player.chosenItem != i)
+                    Color fontColor;
+
+                    if (controller.inventory[i].itemCat == Item.ItemCat.Equipment && (controller.inventory[i].bonusStat != 0))
+                    {
+                        fontColor = Color.SkyBlue;
+                    }
+                    else
                     {
                         fontColor = Color.DarkGoldenrod;
                     }
-                    else
+
+                    if (player.chosenItem == i)
                     {
                         fontColor = Color.Yellow;
                     }

@@ -90,8 +90,10 @@ namespace Roguelike
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.Silver);
+            float frameRate = 1 / (float)gameTime.ElapsedGameTime.TotalSeconds;
+            Window.Title = "FPS: " + (int)frameRate;
 
+            GraphicsDevice.Clear(Color.Silver);
             spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, null, null, null, null, gamePlay.controller.camera.GetTransformMatrix());
             gamePlay.Draw(spriteBatch);
             spriteBatch.End();

@@ -46,8 +46,9 @@ namespace Roguelike
 
             maxHealth += addHealth;
             health += addHealth;
+
             damage += controller.random.Next(2) + 1;
-            defense += controller.random.Next(2) + 1;
+            defense += controller.random.Next(2);
         }
 
         public void Update()
@@ -231,7 +232,7 @@ namespace Roguelike
                         tempArray[position.X, position.Y] = (int)Map.Element.Item;
                         controller.map.itemList.Add(tempItem);
                         controller.map.mapString = controller.map.ArrayToString(tempArray);
-                        stepped = true;
+                        //stepped = true;
                     }
                 }
             }
@@ -239,7 +240,6 @@ namespace Roguelike
             if (state.IsKeyDown(Keys.I) && prevState.IsKeyUp(Keys.I))
             {
                 controller.showInv = !controller.showInv;
-                //chosenItem = 0;
             }
 
             if (state.IsKeyDown(Keys.Q) && prevState.IsKeyUp(Keys.Q))

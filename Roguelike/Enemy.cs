@@ -13,6 +13,7 @@ namespace Roguelike
         public float health;
         public float maxHealth;
         public float damage;
+        public int dropRate;
         public int expValue;
 
         public bool asleep = true;
@@ -40,6 +41,7 @@ namespace Roguelike
                         maxHealth = 10;
                         viewDistance = 5;
                         expValue = 5;
+                        dropRate = 8;
                         break;
                     }
                 case EnemyType.Bat:
@@ -48,14 +50,16 @@ namespace Roguelike
                         damage = 1;
                         maxHealth = 8;
                         viewDistance = 8;
+                        dropRate = 6;
                         expValue = 3;
                         break;
                     }
             }
             //DIFFICULTY SCALING
-            maxHealth += (int)(controller.level / 2);
-            damage += (int)(controller.level / 4);
-            expValue += (int)(controller.level / 3);
+            int scale = (int)(controller.level / 3);
+            maxHealth += scale;
+            damage += scale;
+            expValue += scale;
 
             health = maxHealth;
             if (CanSeePlayer())
@@ -103,6 +107,29 @@ namespace Roguelike
             }
 
             return false;
+        }
+
+        public void Death()
+        {
+            controller.player.experience += expValue;
+            DropLoot();
+        }
+
+        public void DropLoot()
+        {
+            if (controller.random.Next(dropRate) == dropRate - 1)
+            {
+                int[,] tempArray = controller.map.StringToArray(controller.map.mapString);
+
+                if (tempArray[position.X, position.Y] == (int)Map.Element.Stairs)
+                {
+                    return;
+                }
+
+                controller.map.itemList.Add(new Item(controller, position, (Map.Element)tempArray[position.X, position.Y]));
+                tempArray[position.X, position.Y] = (int)Map.Element.Item;
+                controller.map.mapString = controller.map.ArrayToString(tempArray);
+            }
         }
 
         public void Update()
