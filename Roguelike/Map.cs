@@ -133,7 +133,6 @@ namespace Roguelike
 
             if (timeOut == 0)
             {
-                Console.WriteLine("GenerateRandomIsolatedRoom() timed out.");
                 return;
             }
             GenerateRoom(new Point(a, b), new Point(c, d));
@@ -343,9 +342,8 @@ namespace Roguelike
                 return -1;
         }
 
-        public void CreateRandomLevel(int numberOfRooms, int roomSizeX, int roomSizeY, int maxRoomSizeX, int maxRoomSizeY)
+        public void ResetFloorVars()
         {
-            this.player = controller.player;
             GenerateEmptyFloor();
             roomList.Clear();
             bigRoomList.Clear();
@@ -353,16 +351,17 @@ namespace Roguelike
             itemList.Clear();
             minimapSightArray = new int[floorSize, floorSize];
             GenerateSightArray(out minimapSightArray);
+        }
+
+        public void CreateRandomLevel(int numberOfRooms, int roomSizeX, int roomSizeY, int maxRoomSizeX, int maxRoomSizeY)
+        {
+            this.player = controller.player;
+            ResetFloorVars();
 
             while (roomList.Count == 0 || !CheckIfAllConnected(roomList))
             {
-                GenerateEmptyFloor();
-                roomList.Clear();
-                bigRoomList.Clear();
-                enemyList.Clear();
-                itemList.Clear();
-                minimapSightArray = new int[floorSize, floorSize];
-                GenerateSightArray(out minimapSightArray);
+                ResetFloorVars();
+
                 //CREATE BIG ROOMS
                 for (int i = 0; i < numberOfRooms; i++)
                 {
@@ -506,7 +505,7 @@ namespace Roguelike
                     mapArray[temp.X, temp.Y] = (int)Element.Item;
                 }
             }
-            //////////////////
+
             //ENEMIES
             overlap = false;
             for (int i = 0; i < bigRoomList.Count + (int)controller.level / 10; i++)
@@ -581,7 +580,6 @@ namespace Roguelike
         {
             //FOG
             GenerateSightArray(out sightArray);
-            //sightArray[player.position.X, player.position.Y] = 0;
             List<Ray> rayList = new List<Ray>();
             for (float ix = -1f; ix <= 1; ix += 1f)
             {
@@ -779,7 +777,9 @@ namespace Roguelike
                             {
                                 int num = (int)Math.Round(player.health * ContentManager.tHealthBar.Width / player.maxHealth);
 
-                                spriteBatch.Draw(ContentManager.tHealthBar, new Vector2(ix * tileSize, iy * tileSize), new Rectangle(num, 0, 1, 1), Color.White, 0, Vector2.Zero, new Vector2(tileSize * (player.health / player.maxHealth), tileSize / 10), SpriteEffects.None, 0.97f);
+                                spriteBatch.Draw(ContentManager.tHealthBar, new Vector2(ix * tileSize, iy * tileSize), new Rectangle(num, 0, 1, 1), Color.White * 0.8f, 0, Vector2.Zero, new Vector2(tileSize * (player.health / player.maxHealth), tileSize / 10), SpriteEffects.None, 0.97f);
+
+                                spriteBatch.Draw(ContentManager.tFog, new Vector2(ix * tileSize, iy * tileSize + tileSize / 10), null, Color.White * 0.8f, 0, Vector2.Zero, new Vector2(tileSize * (player.experience / player.maxExperience), tileSize / 10), SpriteEffects.None, 0.97f);
 
                                 spriteBatch.Draw(ContentManager.tPlayer, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.1f);
                                 //minimap
@@ -795,8 +795,9 @@ namespace Roguelike
                             }
                         case (int)Element.Item:
                             {
-                                foreach (Item it in itemList)
+                                for (int i = itemList.Count - 1; i > -1; i--)
                                 {
+                                    Item it = itemList[i];
                                     if (it.position == new Point(ix, iy) && (sightArray[ix, iy] == 0 || !controller.showFog))
                                     {
                                         spriteBatch.Draw(it.texture, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.1f);
@@ -826,20 +827,11 @@ namespace Roguelike
                                 {
                                     if (e.position == new Point(ix, iy) && (sightArray[ix, iy] == 0 || !controller.showFog))
                                     {
-                                        Color color;
-                                        if (e.asleep)
-                                        {
-                                            color = Color.White;
-                                        }
-                                        else
-                                        {
-                                            color = Color.LightSalmon;
-                                        }
                                         int num = (int)Math.Round(e.health * ContentManager.tHealthBar.Width / e.maxHealth);
-                                        spriteBatch.Draw(ContentManager.tHealthBar, new Vector2(ix * tileSize, iy * tileSize), new Rectangle(num, 0, 1, 1), Color.White, 0, Vector2.Zero, new Vector2(tileSize * (e.health / e.maxHealth), tileSize / 10), SpriteEffects.None, 0.97f);
-                                        spriteBatch.Draw(e.texture, new Vector2(ix * tileSize, iy * tileSize), null, color, 0, Vector2.Zero, 1, SpriteEffects.None, 0.1f);
+                                        spriteBatch.Draw(ContentManager.tHealthBar, new Vector2(ix * tileSize, iy * tileSize), new Rectangle(num, 0, 1, 1), Color.White * 0.8f, 0, Vector2.Zero, new Vector2(tileSize * (e.health / e.maxHealth), tileSize / 10), SpriteEffects.None, 0.97f);
+                                        spriteBatch.Draw(e.texture, new Vector2(ix * tileSize, iy * tileSize), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.1f);
                                         //minimap
-                                        spriteBatch.Draw(e.texture, minimapPos, null, color, 0, Vector2.Zero, minimapScale / controller.camera.scale, SpriteEffects.None, 11);
+                                        spriteBatch.Draw(e.texture, minimapPos, null, Color.White, 0, Vector2.Zero, minimapScale / controller.camera.scale, SpriteEffects.None, 11);
                                         break;
                                     }
                                 }
@@ -848,12 +840,6 @@ namespace Roguelike
                     }
                 }
             }
-
-            /*foreach (Room r in roomList)
-            {
-                spriteBatch.DrawString(ContentManager.font, r.ToString(), new Vector2((float)r.cornerNW.X * tileSize, (float)r.cornerNW.Y * tileSize), Color.Green, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
-            }
-            */
 
             //FOG
             if (controller.showFog)
@@ -885,19 +871,20 @@ namespace Roguelike
                     }
                 }
             }
-            spriteBatch.DrawString(ContentManager.font, "Health: " + player.health + "/" + player.maxHealth + "\nFloor: " + controller.level + "\nEnemy count: " + enemyList.Count + "\nPlayer level: " + player.playerLevel + "\nEXP: " + player.experience + "/" + player.maxExperience + "\nPlayer damage: " + player.damage, new Vector2(controller.camera.position.X * tileSize, controller.camera.position.Y * tileSize), Color.Red, 0, Vector2.Zero, 1 / controller.camera.scale, SpriteEffects.None, 100);
+            spriteBatch.DrawString(ContentManager.font, "Health: " + player.health + "/" + player.maxHealth + "\nFloor: " + controller.level + "\nEnemy count: " + enemyList.Count + "\nPlayer level: " + player.playerLevel + "\nEXP: " + player.experience + "/" + player.maxExperience + "\nPlayer damage: " + player.damage + "\nDefense: " + player.defense, new Vector2(controller.camera.position.X * tileSize, controller.camera.position.Y * tileSize), Color.Red, 0, Vector2.Zero, 1 / controller.camera.scale, SpriteEffects.None, 100);
 
             spriteBatch.DrawString(ContentManager.font, message, new Vector2(controller.camera.position.X * tileSize + 300 / controller.camera.scale, controller.camera.position.Y * tileSize), Color.Red, 0, Vector2.Zero, 1 / controller.camera.scale, SpriteEffects.None, 100);
 
             if (controller.showInv)
             {
                 string equip = "";
-                int inventoryY = 190;
+                int inventoryY = 240;
                 Color fontColor;
-                spriteBatch.DrawString(ContentManager.font, "Z,C - scroll\nF: Use", new Vector2(controller.camera.position.X * tileSize, controller.camera.position.Y * tileSize + (inventoryY - tileSize * 1.5f) / controller.camera.scale), Color.Gold, 0, Vector2.Zero, 1 / controller.camera.scale, SpriteEffects.None, 100);
+                spriteBatch.DrawString(ContentManager.font, "Z,C - scroll\nF: Use\nR: Drop", new Vector2(controller.camera.position.X * tileSize, controller.camera.position.Y * tileSize + (inventoryY - tileSize * 2.2f) / controller.camera.scale), Color.Gold, 0, Vector2.Zero, 1 / controller.camera.scale, SpriteEffects.None, 100);
 
                 for (int i = 0; i < controller.inventory.Count; i++)
                 {
+                    equip = "";
                     if (player.chosenItem != i)
                     {
                         fontColor = Color.DarkGoldenrod;
@@ -907,13 +894,18 @@ namespace Roguelike
                         fontColor = Color.Yellow;
                     }
 
-                    if (player.equipped == controller.inventory[i])
+                    if (controller.inventory[i].itemCat == Item.ItemCat.Equipment && controller.inventory[i].bonusStat != 0)
                     {
-                        equip = " - E";
+                        equip += " (+" + controller.inventory[i].bonusStat + ")";
+                    }
+
+                    if (player.equippedList.Contains(controller.inventory[i]))
+                    {
+                        equip += " - E";
                     }
                     else
                     {
-                        equip = "";
+                        equip += "";
                     }
 
                     spriteBatch.DrawString(ContentManager.font, (i + 1) + ") " + controller.inventory[i].ToString() + equip, new Vector2(controller.camera.position.X * tileSize, controller.camera.position.Y * tileSize + i * tileSize / 1.4f / controller.camera.scale + inventoryY / controller.camera.scale), fontColor, 0, Vector2.Zero, 1 / controller.camera.scale, SpriteEffects.None, 100);

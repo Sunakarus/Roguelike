@@ -10,12 +10,14 @@ namespace Roguelike
         public Controller controller;
         public Map.Element baseElem; //what is on the ground under the item
 
-        public enum ItemType : int { Potion, PotionRed, BigSword } //ADDITEM
+        public enum ItemType : int { Potion, PotionRed, BigSword, Shield } //ADDITEM
 
         public enum ItemCat { Consumable, Equipment }
 
         public ItemCat itemCat;
-        public int damageStat;
+        public int damageStat = 0;
+        public int defenseStat = 0;
+        public int bonusStat;
 
         //TODO: Rarity system
         /*public enum Rarity : int { Common, Uncommon, Rare }
@@ -35,25 +37,46 @@ namespace Roguelike
             {
                 case ItemType.Potion:
                     {
-                        this.texture = ContentManager.tPotion;
-                        this.itemCat = ItemCat.Consumable;
+                        texture = ContentManager.tPotion;
+                        itemCat = ItemCat.Consumable;
                         break;
                     }
                 case ItemType.PotionRed:
                     {
-                        this.texture = ContentManager.tPotionRed;
-                        this.itemCat = ItemCat.Consumable;
+                        texture = ContentManager.tPotionRed;
+                        itemCat = ItemCat.Consumable;
                         break;
                     }
                 case ItemType.BigSword:
                     {
-                        this.texture = ContentManager.tBigSword;
-                        this.itemCat = ItemCat.Equipment;
-                        this.damageStat = 5;
+                        texture = ContentManager.tBigSword;
+                        itemCat = ItemCat.Equipment;
+
+                        damageStat = 5;
                         break;
                     }
-                default:
-                    break;
+                case ItemType.Shield:
+                    {
+                        texture = ContentManager.tShield;
+                        itemCat = ItemCat.Equipment;
+
+                        defenseStat = 3;
+                        break;
+                    }
+            }
+
+            if (itemCat == ItemCat.Equipment)
+            {
+                if (damageStat > 0)
+                {
+                    bonusStat = controller.random.Next(damageStat + 1);
+                    damageStat += bonusStat;
+                }
+                if (defenseStat > 0)
+                {
+                    bonusStat = controller.random.Next(defenseStat + 1);
+                    defenseStat += bonusStat;
+                }
             }
         }
 
@@ -78,28 +101,14 @@ namespace Roguelike
 
         public void Equip()
         {
-            switch (itemType)
-            {
-                case ItemType.BigSword:
-                    controller.player.damage += damageStat;
-                    break;
-
-                default:
-                    break;
-            }
+            controller.player.damage += damageStat;
+            controller.player.defense += defenseStat;
         }
 
         public void Unequip()
         {
-            switch (itemType)
-            {
-                case ItemType.BigSword:
-                    controller.player.damage -= damageStat;
-                    break;
-
-                default:
-                    break;
-            }
+            controller.player.damage -= damageStat;
+            controller.player.defense -= defenseStat;
         }
 
         public override string ToString()
@@ -114,6 +123,9 @@ namespace Roguelike
 
                 case ItemType.BigSword:
                     return "A big fuckin sword";
+
+                case ItemType.Shield:
+                    return "A kiteshield";
 
                 default:
                     break;

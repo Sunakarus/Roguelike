@@ -52,6 +52,11 @@ namespace Roguelike
                         break;
                     }
             }
+            //DIFFICULTY SCALING
+            maxHealth += (int)(controller.level / 2);
+            damage += (int)(controller.level / 4);
+            expValue += (int)(controller.level / 3);
+
             health = maxHealth;
             if (CanSeePlayer())
             {
@@ -231,7 +236,11 @@ namespace Roguelike
                 return false;
             }
 
-            controller.player.health -= damage;
+            float dealtDamage = damage - controller.player.defense;
+            if (dealtDamage > 0)
+            {
+                controller.player.health -= damage;
+            }
             return true;
         }
     }
