@@ -6,7 +6,7 @@ namespace Roguelike
     {
         public static Texture2D tPlayer, tWall, tPotion, tDoor, tDoorOpen, tSkeleton;
         public static Texture2D tFog, tStairs, tBat, tFloor, tPotionRed, tHealthBar;
-        public static Texture2D tBigSword, tShield;
+        public static Texture2D tBigSword, tShield, tPlateArmor, tBrokenSword, tHealingPotion;
         public static SpriteFont font;
     }
 }

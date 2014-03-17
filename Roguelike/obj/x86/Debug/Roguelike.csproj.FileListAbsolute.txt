@@ -23,3 +23,6 @@ C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\D
 C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Debug\Content\Sprites\fog.png
 C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Debug\Content\Sprites\bigsword.png
 C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Debug\Content\Sprites\shield.png
+C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Debug\Content\Sprites\platearmor.png
+C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Debug\Content\Sprites\brokensword.png
+C:\Users\HanThi\Disk Google\Dropbox\Projects\Roguelike\Roguelike\bin\WindowsGL\Debug\Content\Sprites\healingpot.png

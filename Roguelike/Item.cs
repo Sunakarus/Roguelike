@@ -10,9 +10,9 @@ namespace Roguelike
         public Controller controller;
         public Map.Element baseElem; //what is on the ground under the item
 
-        public enum ItemType : int { Potion, PotionRed, BigSword, Shield } //ADDITEM
+        public enum ItemType : int { Potion, PotionRed, BigSword, Shield, PlateArmor, BrokenSword, HealingPotion } //ADDITEM
 
-        public enum ItemCat { Consumable, Equipment }
+        public enum ItemCat { Consumable, Armor, Weapon }
 
         public ItemCat itemCat;
         public int damageStat = 0;
@@ -23,9 +23,9 @@ namespace Roguelike
         //TODO: Rarity system
         public enum Rarity : int { Common, Uncommon, Rare }
 
-        public ItemType[] commonArray = { ItemType.Potion }; //ADDITEM
-        public ItemType[] uncommonArray = { ItemType.PotionRed };
-        public ItemType[] rareArray = { ItemType.BigSword, ItemType.Shield };
+        public ItemType[] commonArray = { ItemType.Potion, ItemType.HealingPotion }; //ADDITEM
+        public ItemType[] uncommonArray = { ItemType.PotionRed, ItemType.Shield, ItemType.BrokenSword };
+        public ItemType[] rareArray = { ItemType.BigSword, ItemType.PlateArmor };
 
         public ItemType itemType;
 
@@ -35,7 +35,7 @@ namespace Roguelike
             this.position = position;
             this.baseElem = baseElem;
 
-            Rarity rarity = ChooseRarity();
+            Rarity rarity = RollRarity();
 
             int random;
             switch (rarity)
@@ -64,6 +64,12 @@ namespace Roguelike
                         itemCat = ItemCat.Consumable;
                         break;
                     }
+                case ItemType.HealingPotion:
+                    {
+                        texture = ContentManager.tHealingPotion;
+                        itemCat = ItemCat.Consumable;
+                        break;
+                    }
                 case ItemType.PotionRed:
                     {
                         texture = ContentManager.tPotionRed;
@@ -73,7 +79,7 @@ namespace Roguelike
                 case ItemType.BigSword:
                     {
                         texture = ContentManager.tBigSword;
-                        itemCat = ItemCat.Equipment;
+                        itemCat = ItemCat.Weapon;
 
                         damageStat = 5;
                         break;
@@ -81,14 +87,30 @@ namespace Roguelike
                 case ItemType.Shield:
                     {
                         texture = ContentManager.tShield;
-                        itemCat = ItemCat.Equipment;
+                        itemCat = ItemCat.Armor;
 
-                        defenseStat = 3;
+                        defenseStat = 1;
+                        break;
+                    }
+                case ItemType.PlateArmor:
+                    {
+                        texture = ContentManager.tPlateArmor;
+                        itemCat = ItemCat.Armor;
+
+                        defenseStat = 4;
+                        break;
+                    }
+                case ItemType.BrokenSword:
+                    {
+                        texture = ContentManager.tBrokenSword;
+                        itemCat = ItemCat.Weapon;
+
+                        damageStat = 2;
                         break;
                     }
             }
 
-            if (itemCat == ItemCat.Equipment)
+            if (itemCat == ItemCat.Armor || itemCat == ItemCat.Weapon)
             {
                 if (controller.random.Next(BONUSCHANCE) == BONUSCHANCE - 1)
                 {
@@ -106,7 +128,7 @@ namespace Roguelike
             }
         }
 
-        private Rarity ChooseRarity()
+        private Rarity RollRarity()
         {
             int diceRoll = controller.random.Next(1, 101);
             if (diceRoll > 90)
@@ -126,16 +148,26 @@ namespace Roguelike
         //ADDITEM
         public void Use()
         {
+            Buff buff;
             switch (itemType)
             {
                 //CONSUMABLES ONLY
                 case ItemType.Potion:
-                    //controller.player.health += (int)(controller.player.maxHealth / 2);
-                    controller.player.health += 5;
+                    buff = new Buff(ContentManager.tPotion, controller, 50);
+                    buff.AddPlayerAttributes(1, 1, 1);
+                    controller.buffList.Add(buff);
+                    //controller.player.health += 5;
                     break;
 
                 case ItemType.PotionRed:
-                    controller.player.damage += 1;
+                    buff = new Buff(ContentManager.tPotionRed, controller, 40);
+                    buff.AddPlayerAttributes(5, 0, 0);
+                    controller.buffList.Add(buff);
+                    //controller.player.damage += 1;
+                    break;
+
+                case ItemType.HealingPotion:
+                    controller.player.health += 5;
                     break;
 
                 default:
@@ -157,10 +189,10 @@ namespace Roguelike
 
         public override string ToString()
         {
-            switch (itemType)//ADDITEM
+            switch (itemType) //ADDITEM
             {
                 case ItemType.Potion:
-                    return "A vial of potion";
+                    return "An elixir";
 
                 case ItemType.PotionRed:
                     return "A vial of blood";
@@ -168,8 +200,17 @@ namespace Roguelike
                 case ItemType.BigSword:
                     return "A big fuckin sword";
 
+                case ItemType.BrokenSword:
+                    return "A shitty sword";
+
                 case ItemType.Shield:
                     return "A kiteshield";
+
+                case ItemType.PlateArmor:
+                    return "Steel plate armor";
+
+                case ItemType.HealingPotion:
+                    return "A bottle of medicine";
 
                 default:
                     break;

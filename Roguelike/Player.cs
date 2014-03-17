@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using System;
 using System.Collections.Generic;
 
 namespace Roguelike
@@ -13,12 +14,13 @@ namespace Roguelike
         public int playerLevel = 1;
 
         public float health, maxHealth = 15;
-        public float damage = 5;
+        public float damage = 2;
         public float defense = 0;
         public float experience = 0, maxExperience = 15;
 
         public int viewDistance = 6;
-        public int chosenItem = 0;
+
+        public Item weapon;
 
         public List<Item> equippedList = new List<Item>();
 
@@ -27,6 +29,8 @@ namespace Roguelike
 
         public enum Movement { Left, Up, Right, Down }
 
+        private Map map;
+
         public Player(Controller controller)
         {
             this.controller = controller;
@@ -34,6 +38,8 @@ namespace Roguelike
             position = new Point(0, 0);
             health = maxHealth;
             delay = maxDelay;
+
+            map = controller.map;
         }
 
         public void LevelUp()
@@ -75,7 +81,7 @@ namespace Roguelike
                 delay = maxDelay;
             }
 
-            foreach (Enemy e in controller.map.enemyList)
+            foreach (Enemy e in map.enemyList)
             {
                 if (e.isSeen)
                 {
@@ -105,135 +111,28 @@ namespace Roguelike
             {
                 if (!stepped)
                 {
-                    int[,] tempMapArray = controller.map.StringToArray(controller.map.mapString);
-                    if (tempMapArray[position.X, position.Y] == (int)Map.Element.Stairs)
-                    {
-                        controller.MapLevelUp();
-                        stepped = true;
-                    }
-                    else if (tempMapArray[position.X, position.Y] == (int)Map.Element.Item && controller.inventory.Count < Controller.INVENTORYSIZE)
-                    {
-                        for (int i = controller.map.itemList.Count - 1; i > -1; i--)
-                        {
-                            if (controller.map.itemList[i].position == position)
-                            {
-                                controller.inventory.Add(controller.map.itemList[i]);
-                                tempMapArray[position.X, position.Y] = (int)controller.map.itemList[i].baseElem;
-                                controller.map.mapString = controller.map.ArrayToString(tempMapArray);
-                                controller.map.itemList.RemoveAt(i);
-                                break;
-                            }
-                        }
-                        stepped = true;
-                    }
+                    controller.inv.PickUpItem();
+                    stepped = true;
                 }
             }
 
-            //Choosing items
             if (controller.showInv)
             {
                 if (state.IsKeyDown(Keys.Z) && prevState.IsKeyUp(Keys.Z))
                 {
-                    if (chosenItem > 0)
-                    {
-                        chosenItem--;
-                    }
-                    else
-                    {
-                        chosenItem = controller.inventory.Count - 1;
-                    }
+                    controller.inv.ScrollUp();
                 }
                 if (state.IsKeyDown(Keys.C) && prevState.IsKeyUp(Keys.C))
-                    if (chosenItem < controller.inventory.Count - 1)
-                    {
-                        chosenItem++;
-                    }
-                    else
-                    {
-                        chosenItem = 0;
-                    }
-
-                //Using item
+                {
+                    controller.inv.ScrollDown();
+                }
                 if (state.IsKeyDown(Keys.F) && prevState.IsKeyUp(Keys.F) && !stepped)
                 {
-                    if (controller.inventory.Count > 0)
-                    {
-                        if (controller.inventory[chosenItem].itemCat == Item.ItemCat.Consumable)
-                        {
-                            controller.inventory[chosenItem].Use();
-                            controller.inventory.RemoveAt(chosenItem);
-                            if (chosenItem != 0)
-                            {
-                                chosenItem--;
-                            }
-                        }
-                        else if (controller.inventory[chosenItem].itemCat == Item.ItemCat.Equipment)
-                        {
-                            Item tempItem = controller.inventory[chosenItem];
-                            if (equippedList.Count == 0)
-                            {
-                                tempItem.Equip();
-                                equippedList.Add(tempItem);
-                            }
-
-                            else
-                            {
-                                bool tryAdd = true;
-                                for (int i = equippedList.Count - 1; i > -1; i--)
-                                {
-                                    if (equippedList[i] == tempItem)
-                                    {
-                                        equippedList[i].Unequip();
-                                        equippedList.RemoveAt(i);
-                                        tryAdd = false;
-                                        break;
-                                    }
-                                    else if (equippedList[i].itemType == tempItem.itemType)
-                                    {
-                                        equippedList[i].Unequip();
-                                        equippedList.RemoveAt(i);
-                                        tempItem.Equip();
-                                        equippedList.Add(tempItem);
-                                        break;
-                                    }
-                                }
-                                if (!equippedList.Contains(tempItem) && tryAdd)
-                                {
-                                    tempItem.Equip();
-                                    equippedList.Add(tempItem);
-                                }
-                            }
-                        }
-                        stepped = true;
-                    }
+                    controller.inv.UseItem();
                 }
-                //DROPPING ITEMS
                 if (state.IsKeyDown(Keys.R) && prevState.IsKeyUp(Keys.R))
                 {
-                    int[,] tempArray = controller.map.StringToArray(controller.map.mapString);
-
-                    if (!stepped && controller.inventory.Count > 0 && tempArray[position.X, position.Y] != (int)Map.Element.Stairs)
-                    //can't drop on stairs to prevent getting stuck
-                    {
-                        Item tempItem = controller.inventory[chosenItem];
-                        if (equippedList.Contains(tempItem))
-                        {
-                            tempItem.Unequip();
-                            equippedList.Remove(tempItem);
-                        }
-                        controller.inventory.RemoveAt(chosenItem);
-                        if (chosenItem > 0)
-                        {
-                            chosenItem--;
-                        }
-
-                        tempItem.position = position;
-                        tempItem.baseElem = (Map.Element)tempArray[position.X, position.Y];
-                        tempArray[position.X, position.Y] = (int)Map.Element.Item;
-                        controller.map.itemList.Add(tempItem);
-                        controller.map.mapString = controller.map.ArrayToString(tempArray);
-                        //stepped = true;
-                    }
+                    controller.inv.DropItem();
                 }
             }
 
@@ -289,28 +188,38 @@ namespace Roguelike
                     }
             }
 
-            if (!controller.map.OutOfBounds(futurePos) && controller.map.IsWalkable(futurePos) || controller.map.IsElement(futurePos, Map.Element.Door))
+            if (!map.OutOfBounds(futurePos) && map.IsWalkable(futurePos) || map.IsElement(futurePos, Map.Element.Door))
             {
                 position = futurePos;
             }
-            else if (controller.map.IsElement(futurePos, Map.Element.Enemy))
+            else if (map.IsElement(futurePos, Map.Element.Enemy))
             {
-                for (int i = controller.map.enemyList.Count - 1; i > -1; i--)
+                for (int i = map.enemyList.Count - 1; i > -1; i--)
                 {
-                    if (controller.map.enemyList[i].position == futurePos)
+                    if (map.enemyList[i].position == futurePos)
                     {
-                        controller.map.enemyList[i].health -= controller.player.damage;
+                        map.enemyList[i].health -= controller.player.damage;
                     }
                 }
             }
-            else
-            {
-                return;
-            }
             stepped = true;
+        }
 
-            //TO DO
-            //Picking up items, attacking enemies, punchin through walls etc
+        public override string ToString()
+        {
+            int buffDamage = 0, buffDefense = 0, buffMaxHealth = 0;
+            foreach (Buff b in controller.buffList)
+            {
+                buffDamage += b.buffDamage;
+                buffDefense += b.buffDefense;
+                buffMaxHealth += b.buffMaxHealth;
+            }
+            string buffDam, buffDef, buffMaxHeal;
+            buffDam = buffDamage == 0 ? "" : " (+" + buffDamage + ")";
+            buffDef = buffDefense == 0 ? "" : " (+" + buffDefense + ")";
+            buffMaxHeal = buffMaxHealth == 0 ? "" : " (+" + buffMaxHealth + ")";
+
+            return String.Format("Health: {0}/{1}{7} \nPlayer level: {2}\nEXP: {3}/{4}\nDamage: {5}{8}\nDefense: {6}{9}", health, maxHealth, playerLevel, experience, maxExperience, damage, defense, buffMaxHeal, buffDam, buffDef);
         }
     }
 }

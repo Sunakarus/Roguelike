@@ -9,7 +9,7 @@ namespace Roguelike
         private Controller controller;
         private int tileSize;
         private Map map;
-        private GraphicsDeviceManager graphics;
+        public GraphicsDeviceManager graphics;
         public float scale, prevScale;
         private int maxTilesX, maxTilesY;
 

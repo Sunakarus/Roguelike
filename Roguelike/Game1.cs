@@ -58,6 +58,9 @@ namespace Roguelike
             ContentManager.tHealthBar = Content.Load<Texture2D>("Sprites/healthbar");
             ContentManager.tBigSword = Content.Load<Texture2D>("Sprites/bigsword");
             ContentManager.tShield = Content.Load<Texture2D>("Sprites/shield");
+            ContentManager.tPlateArmor = Content.Load<Texture2D>("Sprites/platearmor");
+            ContentManager.tBrokenSword = Content.Load<Texture2D>("Sprites/brokensword");
+            ContentManager.tHealingPotion = Content.Load<Texture2D>("Sprites/healingpot");
 
             gamePlay = new Gameplay(graphics);
         }

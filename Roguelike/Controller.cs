@@ -19,9 +19,10 @@ namespace Roguelike
 
         public static readonly int LEVELCAP = 25;
         public static readonly int STARTMAPSIZE = 15;
-        public static readonly int INVENTORYSIZE = 8;
 
-        public List<Item> inventory = new List<Item>();
+        public List<Item> inventory;
+        public Inventory inv;
+        public List<Buff> buffList = new List<Buff>();
 
         public Controller(GraphicsDeviceManager graphics)
         {
@@ -31,6 +32,9 @@ namespace Roguelike
             camera = new Camera(this, player.position, 32);
             player.health = player.maxHealth;
             map.CreateRandomLevel(3 + (int)level / 2, 2 + (int)level / 10, 2 + (int)level / 10, 3 + (int)level / 10, 3 + (int)level / 10);
+
+            inv = new Inventory(this);
+            inventory = inv.inventory;
         }
 
         public void MapLevelUp()

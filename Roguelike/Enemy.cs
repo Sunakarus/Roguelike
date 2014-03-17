@@ -97,29 +97,6 @@ namespace Roguelike
                 rayList.Add(new Ray(controller, position, new Vector2(p.X - position.X, p.Y - position.Y), viewDistance));
             }
 
-            /*
-            for (float ix = -1f; ix <= 1; ix += 1f)
-            {
-                for (float iy = -1f; iy <= 1; iy += 1f)
-                {
-                    if (ix == 0 && iy == 0)
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        rayList.Add(new Ray(controller, position, new Vector2(ix, iy), viewDistance));
-                        rayList.Add(new Ray(controller, new Point(position.X - 1, position.Y - 1), new Vector2(ix, iy), viewDistance));
-                        rayList.Add(new Ray(controller, new Point(position.X, position.Y - 1), new Vector2(ix, iy), viewDistance));
-                        rayList.Add(new Ray(controller, new Point(position.X + 1, position.Y - 1), new Vector2(ix, iy), viewDistance));
-                        rayList.Add(new Ray(controller, new Point(position.X - 1, position.Y), new Vector2(ix, iy), viewDistance));
-                        rayList.Add(new Ray(controller, new Point(position.X + 1, position.Y), new Vector2(ix, iy), viewDistance));
-                        rayList.Add(new Ray(controller, new Point(position.X - 1, position.Y + 1), new Vector2(ix, iy), viewDistance));
-                        rayList.Add(new Ray(controller, new Point(position.X, position.Y + 1), new Vector2(ix, iy), viewDistance));
-                        rayList.Add(new Ray(controller, new Point(position.X + 1, position.Y + 1), new Vector2(ix, iy), viewDistance));
-                    }
-                }
-            }*/
             foreach (Ray r in rayList)
             {
                 if (r.CanSee(controller.player.position))
